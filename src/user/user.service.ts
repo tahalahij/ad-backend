@@ -1,16 +1,18 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UserLoginDto } from './dtos/user.login.dto';
-import mongoose, { Model } from 'mongoose';
+import { Model } from 'mongoose';
 import { User } from './user.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { CryptoService } from './crypto.service';
 import { CONSTANTS } from './constants/constants';
+import { UserJwtPayload } from '../auth/user.jwt.type';
+import { RolesType } from '../auth/role.type';
 
 @Injectable()
 export class UserService {
   constructor(private CryptoService: CryptoService, @InjectModel(User.name) private userModel: Model<User>) {}
 
-  public async validateUser({ username, password }: UserLoginDto) {
+  public async validateUser({ username, password }: UserLoginDto): Promise<UserJwtPayload> {
     const user = await this.userModel.findOne({ username });
     if (!user) {
       throw new UnauthorizedException(CONSTANTS.LOGIN_FAILED);
@@ -21,26 +23,48 @@ export class UserService {
     }
     return {
       // the data that will be stored in JWT
+      role: user.role,
       id: user._id,
       name: user.name,
     };
   }
-  async seed(): Promise<User[]> {
-    return this.userModel.insertMany([
-      {
-        _id: new mongoose.Types.ObjectId('63cd1f5e9c9abe5feca3fad6'),
-        name: 'user 1',
-        username: 'user1@gmail.com',
-        password: await this.CryptoService.hashPassword('123'),
-        createdAt: new Date(),
-      },
-      {
-        _id: new mongoose.Types.ObjectId('63cd1f12cef39cbd9234a20c'),
-        name: 'user 2',
-        email: 'user2@gmail.com',
-        password: await this.CryptoService.hashPassword('123'),
-        createdAt: new Date(),
-      },
-    ]);
+  async createNewUser({
+    name,
+    username,
+    password,
+    ip,
+    role,
+  }: {
+    name: string;
+    username: string;
+    password: string;
+    ip: string;
+    role: RolesType;
+  }): Promise<User> {
+    return this.userModel.create({
+      name,
+      ip,
+      role,
+      username,
+      password: await this.CryptoService.hashPassword(password),
+      createdAt: new Date(),
+    });
+  }
+
+  async seed() {
+    await this.createNewUser({
+      name: 'Admin',
+      username: 'Admin',
+      role: RolesType.ADMIN,
+      ip: '1.1.1.1',
+      password: 'khorram',
+    });
+    await this.createNewUser({
+      name: 'operator of x',
+      username: 'operator',
+      role: RolesType.OPERATOR,
+      ip: '1.1.1.1',
+      password: 'operator',
+    });
   }
 }
