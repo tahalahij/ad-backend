@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { UserLoginDto } from './dtos/user.login.dto';
 import { Model } from 'mongoose';
 import { User } from './user.schema';
@@ -7,6 +7,7 @@ import { CryptoService } from './crypto.service';
 import { CONSTANTS } from './constants/constants';
 import { UserJwtPayload } from '../auth/user.jwt.type';
 import { RolesType } from '../auth/role.type';
+import { UpdateUserDto } from './dtos/create.user.dto';
 
 @Injectable()
 export class UserService {
@@ -49,6 +50,16 @@ export class UserService {
       password: await this.CryptoService.hashPassword(password),
       createdAt: new Date(),
     });
+  }
+
+  async updateUser(id: string, updateObj: UpdateUserDto): Promise<User> {
+    if (updateObj.username) {
+      const exists = await this.userModel.exists({ _id: id });
+      if (exists) {
+        throw new BadRequestException('Operator with this username already exists');
+      }
+    }
+    return this.userModel.findByIdAndUpdate(id, updateObj);
   }
 
   async seed() {
