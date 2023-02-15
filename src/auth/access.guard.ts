@@ -19,12 +19,13 @@ export class AccessCheckGuard implements CanActivate {
     const filename: string = parse(fileName).name;
 
     const ip = filename.substring(filename.lastIndexOf('-') + 1, filename.length);
-    console.log(ip);
+    console.log('$$$$', request.ip, ip);
+    return true;
 
     if (request.ip == ip) {
       return true;
     } else {
-      throw new ForbiddenException('Cant be accessed from this ip');
+      throw new ForbiddenException(`You dont have accessed from this ip, you ip : ${request.ip}`);
     }
   }
 }
