@@ -3,8 +3,9 @@ import { UserService } from './user.service';
 import { ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesType } from '../auth/role.type';
-import { CreateUserDto, UpdateUserDto } from './dtos/create.user.dto';
+import { CreateUserDto } from './dtos/create.user.dto';
 import { User } from './user.schema';
+import { UpdateUserDto } from './dtos/update.user.dto';
 @ApiTags('users')
 @Controller('users')
 export class UserController {

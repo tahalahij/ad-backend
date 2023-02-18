@@ -1,4 +1,4 @@
 export enum RolesType {
-  'ADMIN' = 'ADMIN',
-  'OPERATOR' = 'OPERATOR',
+  'ADMIN' = 'ADMIN', // system admin who can add operator
+  'OPERATOR' = 'OPERATOR', // admin for a specified ip
 }

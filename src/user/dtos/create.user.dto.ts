@@ -22,5 +22,3 @@ export class CreateUserDto {
   @IsNotEmpty()
   ip: string;
 }
-
-export class UpdateUserDto extends PartialType(CreateUserDto) {}
