@@ -12,6 +12,19 @@ export class File {
   @Prop({ type: mongoose.Schema.Types.String, required: true })
   path: string;
 
+  @Prop({ type: mongoose.Schema.Types.String, required: true })
+  name: string;
+
+  @Prop({ type: mongoose.Schema.Types.String, required: true })
+  type: string;
+
+
+  @Prop({ type: mongoose.Schema.Types.String, required: false })
+  animationName: string;
+
+  @Prop({ type: mongoose.Schema.Types.Number, required: false })
+  delay: number;
+
   @Prop({ type: Date, required: true })
   createdAt: mongoose.Schema.Types.Date;
 

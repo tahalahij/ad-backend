@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { UserLoginDto } from './dtos/user.login.dto';
 import { Model } from 'mongoose';
 import { User } from './user.schema';
@@ -7,7 +7,7 @@ import { CryptoService } from './crypto.service';
 import { CONSTANTS } from './constants/constants';
 import { UserJwtPayload } from '../auth/user.jwt.type';
 import { RolesType } from '../auth/role.type';
-import { UpdateUserDto } from './dtos/create.user.dto';
+import { UpdateUserDto } from './dtos/update.user.dto';
 
 @Injectable()
 export class UserService {
@@ -77,5 +77,12 @@ export class UserService {
       ip: '1.1.1.1',
       password: 'operator',
     });
+  }
+  async findByIp(ip: string) {
+    const user = await this.userModel.findOne({ ip });
+    if (!user) {
+      throw new NotFoundException(`Ip ${ip} not recognized `);
+    }
+    return user
   }
 }
