@@ -29,6 +29,7 @@ import { createReadStream } from 'fs';
 import { ScheduleBodyDto } from './dtos/schedule.body.dto';
 import { UserService } from '../user/user.service';
 import { Schedule } from './schedule.schema';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 function editFileName(req, file, callback) {
   const name = file.originalname.split('.')[0];
@@ -38,12 +39,15 @@ function editFileName(req, file, callback) {
 
   callback(null, newName);
 }
-
+@ApiTags('files')
 @Controller('files')
 export class FileController {
   constructor(private fileService: FileService, private userService: UserService) {}
   private logger = new Logger(FileController.name);
 
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Operator gets its files' })
+  @ApiResponse({ status: 200, type: File })
   @UseGuards(JwtAuthGuard)
   @Get('/')
   async getFiles(
@@ -54,6 +58,9 @@ export class FileController {
     return this.fileService.getFiles(userId, queryDto);
   }
 
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Operator upload its file' })
+  @ApiResponse({ status: 200 })
   @UseGuards(JwtAuthGuard)
   @Post('upload')
   @UseInterceptors(
@@ -70,6 +77,7 @@ export class FileController {
     return { fileName: file.filename, id: createdFile._id };
   }
 
+
   @Get('download/:fileName')
   @AccessCheck()
   download(@Param('fileName') fileName: string) {
@@ -84,6 +92,9 @@ export class FileController {
     return file;
   }
 
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Operator updates or creates its schedule' })
+  @ApiResponse({ status: 200 })
   @UseGuards(JwtAuthGuard)
   @Post('schedule')
   async upsertSchedule(@UserId() adminId: string, @Body() scheduleBody: ScheduleBodyDto): Promise<Schedule> {
@@ -92,6 +103,10 @@ export class FileController {
     return schedule;
   }
 
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'App gets file it supposed to show now' })
+  @ApiResponse({ status: 200 })
+  @Get('schedule')
   async getSchedule(@Res({ passthrough: true }) res: Response, @RealIP() ip: string): Promise<StreamableFile> {
     const file = await this.fileService.getSchedule(ip);
     const stream = createReadStream(join(process.cwd(), file.path));
