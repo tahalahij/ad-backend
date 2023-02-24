@@ -1,10 +1,10 @@
-import { Body, Controller, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesType } from '../auth/role.type';
 import { CreateUserDto } from './dtos/create.user.dto';
-import { User } from './user.schema';
+import { User, UserDocument } from './user.schema';
 import { UpdateUserDto } from './dtos/update.user.dto';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 
@@ -17,6 +17,15 @@ export class UserController {
   @Post('/seed')
   async seed(): Promise<void> {
     return this.userService.seed();
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Admin gets all users' })
+  @ApiResponse({ status: 200, type: User })
+  @UseGuards(JwtAuthGuard)
+  @Get('/operators')
+  async getOperator(): Promise<UserDocument[]> {
+    return this.userService.getOperator();
   }
 
   @ApiBearerAuth()

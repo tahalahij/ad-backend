@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { UserLoginDto } from './dtos/user.login.dto';
 import { Model } from 'mongoose';
-import { User } from './user.schema';
+import { User, UserDocument } from './user.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { CryptoService } from './crypto.service';
 import { CONSTANTS } from './constants/constants';
@@ -13,6 +13,9 @@ import { UpdateUserDto } from './dtos/update.user.dto';
 export class UserService {
   constructor(private CryptoService: CryptoService, @InjectModel(User.name) private userModel: Model<User>) {}
 
+  public async getOperator(): Promise<UserDocument[]> {
+    return this.userModel.find({ role: RolesType.OPERATOR });
+  }
   public async validateUser({ username, password }: UserLoginDto): Promise<UserJwtPayload> {
     const user = await this.userModel.findOne({ username });
     if (!user) {
@@ -83,6 +86,6 @@ export class UserService {
     if (!user) {
       throw new NotFoundException(`Ip ${ip} not recognized `);
     }
-    return user
+    return user;
   }
 }
