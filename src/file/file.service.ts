@@ -1,6 +1,7 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
+// import * as ffmpeg from 'fluent-ffmpeg';
 import { File, FileDocument } from './file.schema';
 import { PaginationQueryDto } from './dtos/pagination.dto';
 import { readFileSync } from 'fs';
@@ -80,4 +81,19 @@ export class FileService {
     );
     return schedule;
   }
+
+  // async createThumbnail(filePath: string, storePath: string) {
+  //   ffmpeg(filePath)
+  //     .takeScreenshots(
+  //       {
+  //         count: 1,
+  //         timemarks: ['2'], // number of seconds
+  //       },
+  //       storePath,
+  //     )
+  //     .on('end', function (Thumbnail) {
+  //       console.log('Screenshots taken', { Thumbnail });
+  //     });
+  //   return true;
+  // }
 }

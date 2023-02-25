@@ -24,8 +24,8 @@ export class UserController {
   @ApiResponse({ status: 200, type: User })
   @UseGuards(JwtAuthGuard)
   @Get('/operators')
-  async getOperator(): Promise<UserDocument[]> {
-    return this.userService.getOperator();
+  async getOperators(): Promise<UserDocument[]> {
+    return this.userService.getOperators();
   }
 
   @ApiBearerAuth()

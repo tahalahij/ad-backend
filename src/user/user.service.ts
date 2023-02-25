@@ -13,8 +13,11 @@ import { UpdateUserDto } from './dtos/update.user.dto';
 export class UserService {
   constructor(private CryptoService: CryptoService, @InjectModel(User.name) private userModel: Model<User>) {}
 
-  public async getOperator(): Promise<UserDocument[]> {
+  public async getOperators(): Promise<UserDocument[]> {
     return this.userModel.find({ role: RolesType.OPERATOR });
+  }
+  public async getOperatorById(id: string): Promise<UserDocument> {
+    return this.userModel.findById(id);
   }
   public async validateUser({ username, password }: UserLoginDto): Promise<UserJwtPayload> {
     const user = await this.userModel.findOne({ username });

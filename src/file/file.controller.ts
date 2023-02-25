@@ -77,7 +77,6 @@ export class FileController {
     return { fileName: file.filename, id: createdFile._id };
   }
 
-
   @Get('download/:fileName')
   @AccessCheck()
   download(@Param('fileName') fileName: string) {
@@ -98,7 +97,7 @@ export class FileController {
   @UseGuards(JwtAuthGuard)
   @Post('schedule')
   async upsertSchedule(@UserId() adminId: string, @Body() scheduleBody: ScheduleBodyDto): Promise<Schedule> {
-    const user = await this.userService.findByIp(adminId);
+    const user = await this.userService.getOperatorById(adminId);
     const schedule = await this.fileService.upsertSchedule(user.ip, scheduleBody);
     return schedule;
   }
