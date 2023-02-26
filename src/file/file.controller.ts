@@ -97,9 +97,17 @@ export class FileController {
   @UseGuards(JwtAuthGuard)
   @Post('schedule')
   async upsertSchedule(@UserId() adminId: string, @Body() scheduleBody: ScheduleBodyDto): Promise<Schedule> {
-    const user = await this.userService.getOperatorById(adminId);
-    const schedule = await this.fileService.upsertSchedule(user.ip, scheduleBody);
+    const schedule = await this.fileService.upsertSchedule(adminId, scheduleBody);
     return schedule;
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get Operators schedules' })
+  @ApiResponse({ status: 200 })
+  @UseGuards(JwtAuthGuard)
+  @Get('schedule/operators')
+  async getOperatorsSchedules(@UserId() adminId: string): Promise<Schedule[]> {
+    return this.fileService.getOperatorsSchedules(adminId);
   }
 
   @ApiBearerAuth()

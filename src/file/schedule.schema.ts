@@ -9,6 +9,9 @@ export class Schedule {
   @Prop({ type: mongoose.Schema.Types.String, required: true })
   ip: string;
 
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'File' })
+  operator: mongoose.Schema.Types.ObjectId;
+
   @Prop({ type: [mongoose.Schema.Types.ObjectId], ref: 'File' })
   conductor: mongoose.Schema.Types.ObjectId[];
 

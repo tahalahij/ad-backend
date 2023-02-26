@@ -65,7 +65,8 @@ export class FileService {
     if (!schedule.lastShown) {
       nextConductor = schedule.conductor[0];
     } else {
-      const index = schedule.conductor.indexOf(schedule.lastShown);
+      let index = schedule.conductor.indexOf(schedule.lastShown);
+      index = index === schedule.conductor.length - 1 ? 0 : index + 1;
       nextConductor = schedule.conductor[index];
     }
     schedule.lastShown = nextConductor;
@@ -73,13 +74,16 @@ export class FileService {
 
     return this.fileModel.findById(nextConductor);
   }
-  async upsertSchedule(ip: string, body: ScheduleBodyDto): Promise<Schedule> {
+  async upsertSchedule(operator: string, body: ScheduleBodyDto): Promise<Schedule> {
     const schedule = await this.scheduleModel.findOneAndUpdate(
-      { ip },
+      { ip: body.ip, operator },
       { conductor: body.conductor },
       { upsert: true, new: true },
     );
     return schedule;
+  }
+  async getOperatorsSchedules(operator: string): Promise<Schedule[]> {
+    return this.scheduleModel.find({ operator });
   }
 
   // async createThumbnail(filePath: string, storePath: string) {
