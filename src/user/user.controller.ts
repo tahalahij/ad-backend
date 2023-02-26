@@ -7,6 +7,7 @@ import { CreateUserDto } from './dtos/create.user.dto';
 import { User, UserDocument } from './user.schema';
 import { UpdateUserDto } from './dtos/update.user.dto';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { UserId } from '../auth/user.id.decorator';
 
 @ApiTags('users')
 @Controller('users')
@@ -41,6 +42,15 @@ export class UserController {
       username: body.username,
       password: body.password,
     });
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Operator updates his info' })
+  @ApiResponse({ status: 200, type: User })
+  @UseGuards(JwtAuthGuard)
+  @Patch('/operator')
+  async resetPassword(@UserId('id') userId: string, @Body() body: UpdateUserDto): Promise<User> {
+    return this.userService.updateUser(userId, body);
   }
 
   @ApiBearerAuth()
