@@ -114,9 +114,9 @@ export class FileController {
   @ApiOperation({ summary: 'App gets file it supposed to show now' })
   @ApiResponse({ status: 200 })
   @Get('schedule')
-  async getSchedule(@Res({ passthrough: true }) res: Response, @RealIP() ip: string): Promise<StreamableFile> {
-    const file = await this.fileService.getSchedule(ip);
-    const stream = createReadStream(join(process.cwd(), file.path));
-    return new StreamableFile(stream);
+  async getSchedule(@Res({ passthrough: true }) res: Response, @RealIP() ip: string): Promise<File> {
+    return this.fileService.getSchedule(ip);
+    // const stream = createReadStream(join(process.cwd(), file.path));
+    // return new StreamableFile(stream);
   }
 }
