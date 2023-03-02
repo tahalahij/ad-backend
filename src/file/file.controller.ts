@@ -12,6 +12,7 @@ import {
   UseGuards,
   Response,
   UseInterceptors,
+  Header,
 } from '@nestjs/common';
 import { FileService } from './file.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -80,11 +81,20 @@ export class FileController {
   @Get('download/:fileName')
   @AccessCheck()
   download(@Param('fileName') fileName: string) {
-    const file = this.fileService.fileBuffer(fileName);
-    return file;
+    return this.fileService.fileBuffer(fileName);
   }
 
-  @Get('download/stream/:fileName')
+  @Get('/:fileName')
+  // @Header('Content-Type', 'application/json')
+  // @Header('Content-Disposition', 'attachment; filename="package.json"')
+  get(@Param('fileName') fileName: string, @Res() res: Response) {
+    const file = createReadStream(join(process.cwd(), 'files', fileName));
+    // @ts-ignore
+    file.pipe(res);
+    // return new StreamableFile(file);
+  }
+
+  @Get('/buffer/:fileName')
   @AccessCheck()
   stream(@Param('fileName') fileName: string) {
     const file = this.fileService.fileBuffer(fileName);
