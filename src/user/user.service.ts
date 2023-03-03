@@ -65,6 +65,9 @@ export class UserService {
         throw new BadRequestException("Operator with this username does'nt exists");
       }
     }
+    if (updateObj.password) {
+      updateObj.password = await this.CryptoService.hashPassword(updateObj.password);
+    }
     return this.userModel.findByIdAndUpdate(id, updateObj);
   }
 
