@@ -53,6 +53,9 @@ export class FileService {
   }
 
   async getSchedule(ip: string): Promise<File> {
+    if (ip.slice(0, 7) == '::ffff:') {
+      ip = ip.slice(7, ip.length);
+    }
     await this.userService.findByIp(ip);
     let nextConductor;
     const schedule = await this.scheduleModel.findOne({ ip });
