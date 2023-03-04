@@ -12,7 +12,6 @@ import {
   UseGuards,
   Response,
   UseInterceptors,
-  Header,
 } from '@nestjs/common';
 import { FileService } from './file.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -84,21 +83,13 @@ export class FileController {
     return this.fileService.fileBuffer(fileName);
   }
 
-  @Get('/:fileName')
-  // @Header('Content-Type', 'application/json')
-  // @Header('Content-Disposition', 'attachment; filename="package.json"')
-  get(@Param('fileName') fileName: string, @Res() res: Response) {
-    const file = createReadStream(join(process.cwd(), 'files', fileName));
-    // @ts-ignore
-    file.pipe(res);
-    // return new StreamableFile(file);
-  }
-
-  @Get('/buffer/:fileName')
+  @Get('download/stream/:fileName')
   @AccessCheck()
-  stream(@Param('fileName') fileName: string) {
-    const file = this.fileService.fileBuffer(fileName);
-    return file;
+  // stream(@Param('fileName') fileName: string) {
+  async stream(@Res({ passthrough: true }) res: Response, @RealIP() ip: string): Promise<StreamableFile> {
+    const file = await this.fileService.getSchedule(ip);
+    const stream = createReadStream(join(process.cwd(), file.path));
+    return new StreamableFile(stream);
   }
 
   @ApiBearerAuth()

@@ -61,9 +61,12 @@ export class UserService {
   async updateUser(id: string, updateObj: UpdateUserDto): Promise<User> {
     if (updateObj.username) {
       const exists = await this.userModel.exists({ _id: id });
-      if (exists) {
-        throw new BadRequestException('Operator with this username already exists');
+      if (!exists) {
+        throw new BadRequestException("Operator with this username does'nt exists");
       }
+    }
+    if (updateObj.password) {
+      updateObj.password = await this.CryptoService.hashPassword(updateObj.password);
     }
     return this.userModel.findByIdAndUpdate(id, updateObj);
   }
