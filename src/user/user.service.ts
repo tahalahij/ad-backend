@@ -41,16 +41,19 @@ export class UserService {
     password,
     ip,
     role,
+    mac
   }: {
     name: string;
     username: string;
     password: string;
     ip: string;
+    mac: string;
     role: RolesType;
   }): Promise<User> {
     return this.userModel.create({
       name,
       ip,
+      mac,
       role,
       username,
       password: await this.CryptoService.hashPassword(password),
@@ -77,6 +80,7 @@ export class UserService {
       username: 'Admin',
       role: RolesType.ADMIN,
       ip: '1.1.1.1',
+      mac: '1.1.1.1',
       password: 'khorram',
     });
     await this.createNewUser({
@@ -84,6 +88,7 @@ export class UserService {
       username: 'operator',
       role: RolesType.OPERATOR,
       ip: '1.1.1.1',
+      mac: '1.1.1.1',
       password: 'operator',
     });
   }

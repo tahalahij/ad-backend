@@ -17,4 +17,8 @@ export class UpdateUserDto {
   @ApiPropertyOptional({ example: '11.10.4.2' })
   @IsString()
   ip?: string;
+
+  @ApiPropertyOptional({ example: '11.10.4.2' })
+  @IsString()
+  mac?: string;
 }

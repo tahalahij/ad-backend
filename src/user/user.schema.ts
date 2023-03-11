@@ -18,6 +18,10 @@ export class User {
   @Prop({ type: String, required: false })
   ip: string;
 
+
+  @Prop({ type: String, required: false })
+  mac: string;
+
   @Prop({ type: String, enum: RolesType, required: true })
   role: RolesType;
 

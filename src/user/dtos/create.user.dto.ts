@@ -21,4 +21,9 @@ export class CreateUserDto {
   @IsString()
   @IsNotEmpty()
   ip: string;
+
+  @ApiProperty({ example: '11.10.4.2' })
+  @IsString()
+  @IsNotEmpty()
+  mac: string;
 }
