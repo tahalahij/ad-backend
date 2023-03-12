@@ -8,6 +8,7 @@ import { CONSTANTS } from './constants/constants';
 import { UserJwtPayload } from '../auth/user.jwt.type';
 import { RolesType } from '../auth/role.type';
 import { UpdateUserDto } from './dtos/update.user.dto';
+import { CreateUserDto } from './dtos/create.user.dto';
 
 @Injectable()
 export class UserService {
@@ -35,28 +36,11 @@ export class UserService {
       name: user.name,
     };
   }
-  async createNewUser({
-    name,
-    username,
-    password,
-    ip,
-    role,
-    mac
-  }: {
-    name: string;
-    username: string;
-    password: string;
-    ip: string;
-    mac: string;
-    role: RolesType;
-  }): Promise<User> {
+  async createNewUser(body: CreateUserDto): Promise<User> {
     return this.userModel.create({
-      name,
-      ip,
-      mac,
-      role,
-      username,
-      password: await this.CryptoService.hashPassword(password),
+      ...body,
+      role: RolesType.OPERATOR,
+      password: await this.CryptoService.hashPassword(body.password),
       createdAt: new Date(),
     });
   }
@@ -65,7 +49,7 @@ export class UserService {
     if (updateObj.username) {
       const exists = await this.userModel.exists({ username: updateObj.username });
       if (!exists) {
-        throw new BadRequestException("Operator with this username already exists");
+        throw new BadRequestException('Operator with this username already exists');
       }
     }
     if (updateObj.password) {
@@ -75,21 +59,23 @@ export class UserService {
   }
 
   async seed() {
-    await this.createNewUser({
+    await this.userModel.create({
+      createdAt: new Date(),
       name: 'Admin',
       username: 'Admin',
       role: RolesType.ADMIN,
       ip: '1.1.1.1',
       mac: '1.1.1.1',
-      password: 'khorram',
+      password: await this.CryptoService.hashPassword('khorram'),
     });
-    await this.createNewUser({
+    await this.userModel.create({
+      createdAt: new Date(),
       name: 'operator of x',
       username: 'operator',
       role: RolesType.OPERATOR,
       ip: '1.1.1.1',
       mac: '1.1.1.1',
-      password: 'operator',
+      password: await this.CryptoService.hashPassword('operator'),
     });
   }
   async findByIp(ip: string) {

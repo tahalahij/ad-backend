@@ -8,6 +8,7 @@ import { User, UserDocument } from './user.schema';
 import { UpdateUserDto } from './dtos/update.user.dto';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { UserId } from '../auth/user.id.decorator';
+import { RoleAccessCheck } from '../auth/role.access.guard';
 
 @ApiTags('users')
 @Controller('users')
@@ -24,7 +25,8 @@ export class UserController {
   @ApiOperation({ summary: 'Admin gets all users' })
   @ApiResponse({ status: 200, type: User })
   @UseGuards(JwtAuthGuard)
-  @Get('/operators')
+  @UseGuards(RoleAccessCheck([RolesType.ADMIN]))
+  @Get('/admin/operators')
   async getOperators(): Promise<UserDocument[]> {
     return this.userService.getOperators();
   }
@@ -33,31 +35,28 @@ export class UserController {
   @ApiOperation({ summary: 'Admin creates a operator' })
   @ApiResponse({ status: 200, type: User })
   @UseGuards(JwtAuthGuard)
-  @Post('/')
+  @UseGuards(RoleAccessCheck([RolesType.ADMIN]))
+  @Post('/admin')
   async addUser(@Body() body: CreateUserDto): Promise<User> {
-    return this.userService.createNewUser({
-      name: body.name,
-      ip: body.ip,
-      role: RolesType.OPERATOR,
-      username: body.username,
-      password: body.password,
-    });
+    return this.userService.createNewUser(body);
   }
 
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Operator updates his info' })
   @ApiResponse({ status: 200, type: User })
   @UseGuards(JwtAuthGuard)
+  @UseGuards(RoleAccessCheck([RolesType.OPERATOR]))
   @Patch('/operator')
-  async resetPassword(@UserId('id') userId: string, @Body() body: UpdateUserDto): Promise<User> {
-    return this.userService.updateUser(userId, body);
+  async resetPassword(@UserId('id') operatorId: string, @Body() body: UpdateUserDto): Promise<User> {
+    return this.userService.updateUser(operatorId, body);
   }
 
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin updates a operator' })
   @ApiResponse({ status: 200, type: User })
   @UseGuards(JwtAuthGuard)
-  @Patch('/:id')
+  @UseGuards(RoleAccessCheck([RolesType.ADMIN]))
+  @Patch('/admin/:id')
   async updateUser(@Param('id') id: string, @Body() body: UpdateUserDto): Promise<User> {
     return this.userService.updateUser(id, body);
   }

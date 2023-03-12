@@ -21,7 +21,7 @@ import { PaginationQueryDto } from './dtos/pagination.dto';
 import mongoose from 'mongoose';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { AccessCheck } from '../auth/access.guard';
+import { IpAccessCheck } from '../auth/ip.access.guard';
 import { extname, join } from 'path';
 import { RealIP } from 'nestjs-real-ip';
 import { UploadDto } from './dtos/upload.dto';
@@ -30,6 +30,8 @@ import { ScheduleBodyDto } from './dtos/schedule.body.dto';
 import { UserService } from '../user/user.service';
 import { Schedule } from './schedule.schema';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { RoleAccessCheck } from '../auth/role.access.guard';
+import { RolesType } from '../auth/role.type';
 
 function editFileName(req, file, callback) {
   const name = file.originalname.split('.')[0];
@@ -49,19 +51,20 @@ export class FileController {
   @ApiOperation({ summary: 'Operator gets its files' })
   @ApiResponse({ status: 200, type: File })
   @UseGuards(JwtAuthGuard)
+  @UseGuards(RoleAccessCheck([RolesType.OPERATOR]))
   @Get('/')
   async getFiles(
-    @UserId() userId: mongoose.Types.ObjectId,
+    @UserId() operatorId: mongoose.Types.ObjectId,
     @Query() queryDto: PaginationQueryDto,
-    @RealIP() ip: string,
   ): Promise<File[]> {
-    return this.fileService.getFiles(userId, queryDto);
+    return this.fileService.getFiles(operatorId, queryDto);
   }
 
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Operator upload its file' })
   @ApiResponse({ status: 200 })
   @UseGuards(JwtAuthGuard)
+  @UseGuards(RoleAccessCheck([RolesType.OPERATOR]))
   @Post('upload')
   @UseInterceptors(
     FileInterceptor('file', {
@@ -78,14 +81,13 @@ export class FileController {
   }
 
   @Get('download/:fileName')
-  @AccessCheck()
+  @IpAccessCheck()
   download(@Param('fileName') fileName: string) {
     return this.fileService.fileBuffer(fileName);
   }
 
   @Get('download/stream/:fileName')
-  @AccessCheck()
-  // stream(@Param('fileName') fileName: string) {
+  @IpAccessCheck()
   async stream(@Res({ passthrough: true }) res: Response, @RealIP() ip: string): Promise<StreamableFile> {
     const file = await this.fileService.getSchedule(ip);
     const stream = createReadStream(join(process.cwd(), file.path));
@@ -96,6 +98,7 @@ export class FileController {
   @ApiOperation({ summary: 'Operator updates or creates its schedule' })
   @ApiResponse({ status: 200 })
   @UseGuards(JwtAuthGuard)
+  @UseGuards(RoleAccessCheck([RolesType.OPERATOR]))
   @Post('schedule')
   async upsertSchedule(@UserId() adminId: string, @Body() scheduleBody: ScheduleBodyDto): Promise<Schedule> {
     const schedule = await this.fileService.upsertSchedule(adminId, scheduleBody);
@@ -103,17 +106,19 @@ export class FileController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get Operators schedules' })
+  @ApiOperation({ summary: 'Operator gets his own schedules' })
   @ApiResponse({ status: 200 })
   @UseGuards(JwtAuthGuard)
+  @UseGuards(RoleAccessCheck([RolesType.OPERATOR]))
   @Get('schedule/operators')
-  async getOperatorsSchedules(@UserId() adminId: string): Promise<Schedule[]> {
-    return this.fileService.getOperatorsSchedules(adminId);
+  async getOperatorsSchedules(@UserId() operatorId: string): Promise<Schedule[]> {
+    return this.fileService.getOperatorsSchedules(operatorId);
   }
 
   @ApiBearerAuth()
   @ApiOperation({ summary: 'App gets file it supposed to show now' })
   @ApiResponse({ status: 200 })
+  @IpAccessCheck()
   @Get('schedule')
   async getSchedule(@Res({ passthrough: true }) res: Response, @RealIP() ip: string): Promise<File> {
     return this.fileService.getSchedule(ip);

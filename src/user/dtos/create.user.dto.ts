@@ -1,5 +1,5 @@
-import { ApiProperty, PartialType } from '@nestjs/swagger';
-import { IsString, IsNotEmpty } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
 
 export class CreateUserDto {
   @ApiProperty({ example: 'jackdorsi' })
@@ -17,13 +17,13 @@ export class CreateUserDto {
   @IsNotEmpty()
   password: string;
 
-  @ApiProperty({ example: '11.10.4.2' })
+  @ApiPropertyOptional({ example: '11.10.4.2' })
   @IsString()
-  @IsNotEmpty()
-  ip: string;
+  @IsOptional()
+  ip?: string;
 
-  @ApiProperty({ example: '11.10.4.2' })
+  @ApiPropertyOptional({ example: '11.10.4.2' })
   @IsString()
-  @IsNotEmpty()
-  mac: string;
+  @IsOptional()
+  mac?: string;
 }

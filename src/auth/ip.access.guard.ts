@@ -10,8 +10,8 @@ import {
 import { parse } from 'path';
 
 @Injectable()
-export class AccessCheckGuard implements CanActivate {
-  private logger = new Logger(AccessCheckGuard.name);
+export class IpAccessCheckGuard implements CanActivate {
+  private logger = new Logger(IpAccessCheckGuard.name);
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
 
@@ -35,6 +35,6 @@ export class AccessCheckGuard implements CanActivate {
   }
 }
 
-export function AccessCheck() {
-  return applyDecorators(UseGuards(AccessCheckGuard));
+export function IpAccessCheck() {
+  return applyDecorators(UseGuards(IpAccessCheckGuard));
 }
