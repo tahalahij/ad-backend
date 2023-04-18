@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { DeviceService } from './device.service';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -8,6 +8,8 @@ import { GetDevicesQueryDto } from './dtos/get.devices.query.dto';
 import { UpdateDeviceDto } from './dtos/update.device.dto';
 import { RoleAccessCheck } from '../auth/role.access.guard';
 import { RolesType } from '../auth/role.type';
+import { UserId } from '../auth/user.id.decorator';
+import { Schedule } from "../schedule/schedule.schema";
 
 @ApiTags('devices')
 @Controller('devices')
@@ -25,6 +27,16 @@ export class DeviceController {
   }
 
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'Operator gets all his devices' })
+  @ApiResponse({ status: 200, type: Device })
+  @UseGuards(JwtAuthGuard)
+  @UseGuards(RoleAccessCheck([RolesType.OPERATOR]))
+  @Get('/')
+  async getOperatorsDevices(@UserId() operatorId: string): Promise<DeviceDocument[]> {
+    return this.deviceService.getDevices({ operatorId });
+  }
+
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin creates a new device' })
   @ApiResponse({ status: 200, type: Device })
   @UseGuards(JwtAuthGuard)
@@ -38,7 +50,7 @@ export class DeviceController {
   @ApiOperation({ summary: 'Admin updates a device' })
   @ApiResponse({ status: 200, type: Device })
   @UseGuards(JwtAuthGuard)
-  @Post('/admin')
+  @Patch('/admin')
   @UseGuards(RoleAccessCheck([RolesType.ADMIN]))
   async updateDevice(@Param('id') id: string, @Body() body: UpdateDeviceDto): Promise<Device> {
     return this.deviceService.updateDevice(id, body);
@@ -52,5 +64,15 @@ export class DeviceController {
   @UseGuards(RoleAccessCheck([RolesType.ADMIN, RolesType.OPERATOR]))
   async getDevice(@Param('id') id: string): Promise<DeviceDocument> {
     return this.deviceService.getDevice({ _id: id });
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Admin gets current schedule of device' })
+  @ApiResponse({ status: 200 })
+  @UseGuards(JwtAuthGuard)
+  @UseGuards(RoleAccessCheck([RolesType.ADMIN]))
+  @Get('/admin/schedule/:deviceId')
+  async getSchedule(@Param('deviceId') deviceId: string): Promise<Schedule> {
+    return this.deviceService.getDevicesCurrentSchedule(deviceId);
   }
 }

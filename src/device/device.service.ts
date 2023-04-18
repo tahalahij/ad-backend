@@ -4,10 +4,17 @@ import { Device, DeviceDocument } from './device.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { CreateDeviceDto } from './dtos/create.device.dto';
 import { UpdateDeviceDto } from './dtos/update.device.dto';
+import { DeviceSchedule } from './device.schadule.schema';
+import { ScheduleService } from '../schedule/schedule.service';
+import { Schedule } from '../schedule/schedule.schema';
 
 @Injectable()
 export class DeviceService {
-  constructor(@InjectModel(Device.name) private deviceModel: Model<Device>) {}
+  constructor(
+    @InjectModel(Device.name) private deviceModel: Model<Device>,
+    private scheduleService: ScheduleService,
+    @InjectModel(DeviceSchedule.name) private deviceScheduleModel: Model<DeviceSchedule>,
+  ) {}
 
   async createNewDevice(data: CreateDeviceDto): Promise<Device> {
     return this.deviceModel.create({
@@ -30,5 +37,10 @@ export class DeviceService {
       throw new NotFoundException(`Device not found for: ${JSON.stringify(filter)}`);
     }
     return device;
+  }
+
+  async getDevicesCurrentSchedule(deviceId: string): Promise<Schedule> {
+    const device = await this.getDevice({ _id: deviceId });
+    return this.scheduleService.getSchedule(device.ip);
   }
 }

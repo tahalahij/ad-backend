@@ -6,11 +6,13 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module';
 import { FileModule } from './file/file.module';
+import { DeviceModule } from './device/device.module';
 
 @Module({
   imports: [
     UserModule,
     FileModule,
+    DeviceModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env'],
