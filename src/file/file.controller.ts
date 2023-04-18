@@ -22,21 +22,19 @@ import mongoose from 'mongoose';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { IpAccessCheck } from '../auth/ip.access.guard';
-import { extname, join } from 'path';
+import { extname } from 'path';
 import { RealIP } from 'nestjs-real-ip';
 import { UploadDto } from './dtos/upload.dto';
-import { createReadStream } from 'fs';
-import { ScheduleBodyDto } from './dtos/schedule.body.dto';
-import { UserService } from '../user/user.service';
-import { Schedule } from './schedule.schema';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { RoleAccessCheck } from '../auth/role.access.guard';
 import { RolesType } from '../auth/role.type';
+import { ScheduleService } from '../schedule/schedule.service';
 
 function editFileName(req, file, callback) {
   const name = file.originalname.split('.')[0];
+  const userId = req.user.id
   const extension = extname(file.originalname);
-  const newName = `${new Date().getTime()}-${name}${extension}`;
+  const newName = `${new Date().getTime()}-${name}-${userId}${extension}`;
   console.log({ newName });
 
   callback(null, newName);
@@ -44,7 +42,7 @@ function editFileName(req, file, callback) {
 @ApiTags('files')
 @Controller('files')
 export class FileController {
-  constructor(private fileService: FileService, private userService: UserService) {}
+  constructor(private fileService: FileService, private scheduleService: ScheduleService) {}
   private logger = new Logger(FileController.name);
 
   @ApiBearerAuth()
@@ -88,41 +86,10 @@ export class FileController {
 
   @Get('download/stream/:fileName')
   @IpAccessCheck()
-  async stream(@Res({ passthrough: true }) res: Response, @RealIP() ip: string): Promise<StreamableFile> {
-    const file = await this.fileService.getSchedule(ip);
-    const stream = createReadStream(join(process.cwd(), file.path));
-    return new StreamableFile(stream);
-  }
-
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Operator updates or creates its schedule' })
-  @ApiResponse({ status: 200 })
-  @UseGuards(JwtAuthGuard)
-  @UseGuards(RoleAccessCheck([RolesType.OPERATOR]))
-  @Post('schedule')
-  async upsertSchedule(@UserId() adminId: string, @Body() scheduleBody: ScheduleBodyDto): Promise<Schedule> {
-    const schedule = await this.fileService.upsertSchedule(adminId, scheduleBody);
-    return schedule;
-  }
-
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Operator gets his own schedules' })
-  @ApiResponse({ status: 200 })
-  @UseGuards(JwtAuthGuard)
-  @UseGuards(RoleAccessCheck([RolesType.OPERATOR]))
-  @Get('schedule/operators')
-  async getOperatorsSchedules(@UserId() operatorId: string): Promise<Schedule[]> {
-    return this.fileService.getOperatorsSchedules(operatorId);
-  }
-
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'App gets file it supposed to show now' })
-  @ApiResponse({ status: 200 })
-  @IpAccessCheck()
-  @Get('schedule')
-  async getSchedule(@Res({ passthrough: true }) res: Response, @RealIP() ip: string): Promise<File> {
-    return this.fileService.getSchedule(ip);
-    // const stream = createReadStream(join(process.cwd(), file.path));
-    // return new StreamableFile(stream);
+  async stream(
+    @Res({ passthrough: true }) res: Response,
+    @Param('fileName') fileName: string,
+  ): Promise<StreamableFile> {
+    return this.fileService.fileStream(fileName);
   }
 }

@@ -1,24 +1,17 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, StreamableFile } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
-// import * as ffmpeg from 'fluent-ffmpeg';
 import { File, FileDocument } from './file.schema';
 import { PaginationQueryDto } from './dtos/pagination.dto';
-import { readFileSync } from 'fs';
+import { createReadStream, readFileSync } from 'fs';
 import { join } from 'path';
-import { UserService } from '../user/user.service';
-import { Schedule } from './schedule.schema';
 import { UploadDto } from './dtos/upload.dto';
-import { ScheduleBodyDto } from './dtos/schedule.body.dto';
+import * as Buffer from 'buffer';
 
 @Injectable()
 export class FileService {
   private logger = new Logger(FileService.name);
-  constructor(
-    @InjectModel(File.name) private fileModel: Model<File>,
-    @InjectModel(Schedule.name) private scheduleModel: Model<Schedule>,
-    private userService: UserService,
-  ) {}
+  constructor(@InjectModel(File.name) private fileModel: Model<File>) {}
 
   async createFile(ownerId: string, file: Express.Multer.File, uploadDto: UploadDto): Promise<FileDocument> {
     const fileDoc = await this.fileModel.create({
@@ -47,60 +40,15 @@ export class FileService {
       },
     );
   }
+  async getFileById(id: string | mongoose.Types.ObjectId): Promise<File> {
+    return this.fileModel.findById(id);
+  }
 
-  fileBuffer(fileName: string) {
+  fileBuffer(fileName: string): Buffer.Buffer {
     return readFileSync(join(process.cwd(), `/files/${fileName}`));
   }
-
-  async getSchedule(ip: string): Promise<File> {
-    if (ip.slice(0, 7) == '::ffff:') {
-      ip = ip.slice(7, ip.length);
-    }
-    await this.userService.findByIp(ip);
-    let nextConductor;
-    const schedule = await this.scheduleModel.findOne({ ip });
-    if (!schedule) {
-      throw new NotFoundException(`No schedule found for ip: ${ip}`);
-    }
-    if (schedule.conductor.length < 1) {
-      throw new NotFoundException(`Conductor is empty for ip: ${ip}`);
-    }
-    if (!schedule.lastShown) {
-      nextConductor = schedule.conductor[0];
-    } else {
-      let index = schedule.conductor.indexOf(schedule.lastShown);
-      index = index === schedule.conductor.length - 1 ? 0 : index + 1;
-      nextConductor = schedule.conductor[index];
-    }
-    schedule.lastShown = nextConductor;
-    schedule.save();
-
-    return this.fileModel.findById(nextConductor);
+  fileStream(fileName: string): StreamableFile {
+    const stream = createReadStream(join(process.cwd(), `/files/${fileName}`));
+    return new StreamableFile(stream);
   }
-  async upsertSchedule(operator: string, body: ScheduleBodyDto): Promise<Schedule> {
-    const schedule = await this.scheduleModel.findOneAndUpdate(
-      { ip: body.ip, operator },
-      { conductor: body.conductor },
-      { upsert: true, new: true },
-    );
-    return schedule;
-  }
-  async getOperatorsSchedules(operator: string): Promise<Schedule[]> {
-    return this.scheduleModel.find({ operator });
-  }
-
-  // async createThumbnail(filePath: string, storePath: string) {
-  //   ffmpeg(filePath)
-  //     .takeScreenshots(
-  //       {
-  //         count: 1,
-  //         timemarks: ['2'], // number of seconds
-  //       },
-  //       storePath,
-  //     )
-  //     .on('end', function (Thumbnail) {
-  //       console.log('Screenshots taken', { Thumbnail });
-  //     });
-  //   return true;
-  // }
 }

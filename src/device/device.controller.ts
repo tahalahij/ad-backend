@@ -9,7 +9,8 @@ import { UpdateDeviceDto } from './dtos/update.device.dto';
 import { RoleAccessCheck } from '../auth/role.access.guard';
 import { RolesType } from '../auth/role.type';
 import { UserId } from '../auth/user.id.decorator';
-import { Schedule } from "../schedule/schedule.schema";
+import { Schedule } from '../schedule/schedule.schema';
+import { File } from '../file/file.schema';
 
 @ApiTags('devices')
 @Controller('devices')
@@ -72,7 +73,7 @@ export class DeviceController {
   @UseGuards(JwtAuthGuard)
   @UseGuards(RoleAccessCheck([RolesType.ADMIN]))
   @Get('/admin/schedule/:deviceId')
-  async getSchedule(@Param('deviceId') deviceId: string): Promise<Schedule> {
+  async getSchedule(@Param('deviceId') deviceId: string): Promise<{ schedule: Schedule; file: File }> {
     return this.deviceService.getDevicesCurrentSchedule(deviceId);
   }
 }

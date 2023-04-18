@@ -6,7 +6,7 @@ version: '3.6'
 
 services:
   mongodb:
-    container_name: casino_db_mongo
+    container_name: mongo-latest
     image: mongo:latest
     environment:
       MONGO_INITDB_ROOT_USERNAME: root

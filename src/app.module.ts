@@ -7,12 +7,15 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module';
 import { FileModule } from './file/file.module';
 import { DeviceModule } from './device/device.module';
+import { ScheduleModule } from './schedule/schedule.module';
 
 @Module({
   imports: [
     UserModule,
+    ScheduleModule,
     FileModule,
     DeviceModule,
+    AuthModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env'],
@@ -27,7 +30,6 @@ import { DeviceModule } from './device/device.module';
       }),
       inject: [ConfigService],
     }),
-    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
