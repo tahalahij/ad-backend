@@ -1,4 +1,12 @@
-import { CanActivate, ExecutionContext, ForbiddenException, Injectable, Logger, UseGuards } from '@nestjs/common';
+import {
+  applyDecorators,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+  Injectable,
+  Logger,
+  UseGuards,
+} from '@nestjs/common';
 import { parse } from 'path';
 
 @Injectable()
@@ -26,5 +34,5 @@ export class IpAccessCheckGuard implements CanActivate {
 }
 
 export function IpAccessCheck() {
-  return UseGuards(new IpAccessCheckGuard());
+  return applyDecorators(UseGuards(new IpAccessCheckGuard()));
 }

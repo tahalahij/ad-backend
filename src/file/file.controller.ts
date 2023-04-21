@@ -23,16 +23,14 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { IpAccessCheck } from '../auth/ip.access.guard';
 import { extname } from 'path';
-import { RealIP } from 'nestjs-real-ip';
 import { UploadDto } from './dtos/upload.dto';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { RoleAccessCheck } from '../auth/role.access.guard';
 import { RolesType } from '../auth/role.type';
-import { ScheduleService } from '../schedule/schedule.service';
 
 function editFileName(req, file, callback) {
   const name = file.originalname.split('.')[0];
-  const userId = req.user.id
+  const userId = req.user.id;
   const extension = extname(file.originalname);
   const newName = `${new Date().getTime()}-${name}-${userId}${extension}`;
   console.log({ newName });
@@ -42,14 +40,13 @@ function editFileName(req, file, callback) {
 @ApiTags('files')
 @Controller('files')
 export class FileController {
-  constructor(private fileService: FileService, private scheduleService: ScheduleService) {}
+  constructor(private fileService: FileService) {}
   private logger = new Logger(FileController.name);
 
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Operator gets its files' })
   @ApiResponse({ status: 200, type: File })
-  @UseGuards(JwtAuthGuard)
-  @UseGuards(RoleAccessCheck([RolesType.OPERATOR]))
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.OPERATOR]))
   @Get('/')
   async getFiles(
     @UserId() operatorId: mongoose.Types.ObjectId,
@@ -61,8 +58,7 @@ export class FileController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Operator upload its file' })
   @ApiResponse({ status: 200 })
-  @UseGuards(JwtAuthGuard)
-  @UseGuards(RoleAccessCheck([RolesType.OPERATOR]))
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.OPERATOR]))
   @Post('upload')
   @UseInterceptors(
     FileInterceptor('file', {

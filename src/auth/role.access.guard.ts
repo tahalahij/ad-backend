@@ -29,5 +29,5 @@ export class RoleAccessCheckGuard implements CanActivate {
 }
 
 export function RoleAccessCheck(whiteListRoles: RolesType[]) {
-  return applyDecorators(UseGuards(new RoleAccessCheckGuard(whiteListRoles)));
+  return new RoleAccessCheckGuard(whiteListRoles);
 }

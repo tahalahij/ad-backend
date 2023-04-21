@@ -20,8 +20,7 @@ export class DeviceController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin gets all devices' })
   @ApiResponse({ status: 200, type: Device })
-  @UseGuards(JwtAuthGuard)
-  @UseGuards(RoleAccessCheck([RolesType.ADMIN]))
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
   @Get('/admin')
   async getDevices(@Query() queryDto: GetDevicesQueryDto): Promise<DeviceDocument[]> {
     return this.deviceService.getDevices(queryDto);
@@ -30,8 +29,7 @@ export class DeviceController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Operator gets all his devices' })
   @ApiResponse({ status: 200, type: Device })
-  @UseGuards(JwtAuthGuard)
-  @UseGuards(RoleAccessCheck([RolesType.OPERATOR]))
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.OPERATOR]))
   @Get('/')
   async getOperatorsDevices(@UserId() operatorId: string): Promise<DeviceDocument[]> {
     return this.deviceService.getDevices({ operatorId });
@@ -40,8 +38,7 @@ export class DeviceController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin creates a new device' })
   @ApiResponse({ status: 200, type: Device })
-  @UseGuards(JwtAuthGuard)
-  @UseGuards(RoleAccessCheck([RolesType.ADMIN]))
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
   @Post('/admin')
   async addDevice(@Body() body: CreateDeviceDto): Promise<Device> {
     return this.deviceService.createNewDevice(body);
@@ -70,8 +67,7 @@ export class DeviceController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin gets current schedule of device' })
   @ApiResponse({ status: 200 })
-  @UseGuards(JwtAuthGuard)
-  @UseGuards(RoleAccessCheck([RolesType.ADMIN]))
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
   @Get('/admin/schedule/:deviceId')
   async getSchedule(@Param('deviceId') deviceId: string): Promise<{ schedule: Schedule; file: File }> {
     return this.deviceService.getDevicesCurrentSchedule(deviceId);

@@ -9,7 +9,7 @@ import { ScheduleBodyDto } from './dtos/schedule.body.dto';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { RoleAccessCheck } from '../auth/role.access.guard';
 import { RolesType } from '../auth/role.type';
-import { File } from "../file/file.schema";
+import { File } from '../file/file.schema';
 
 @ApiTags('schedule')
 @Controller('schedule')
@@ -19,8 +19,7 @@ export class ScheduleController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Operator updates or creates its schedule' })
   @ApiResponse({ status: 200 })
-  @UseGuards(JwtAuthGuard)
-  @UseGuards(RoleAccessCheck([RolesType.OPERATOR]))
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.OPERATOR]))
   @Post('schedule')
   async upsertSchedule(@UserId() adminId: string, @Body() scheduleBody: ScheduleBodyDto): Promise<Schedule> {
     const schedule = await this.scheduleService.upsertSchedule(adminId, scheduleBody);
@@ -30,8 +29,7 @@ export class ScheduleController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Operator gets his own schedules' })
   @ApiResponse({ status: 200 })
-  @UseGuards(JwtAuthGuard)
-  @UseGuards(RoleAccessCheck([RolesType.OPERATOR]))
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.OPERATOR]))
   @Get('schedule/operators')
   async getOperatorsSchedules(@UserId() operatorId: string): Promise<Schedule[]> {
     return this.scheduleService.getOperatorsSchedules(operatorId);
@@ -42,7 +40,10 @@ export class ScheduleController {
   @ApiResponse({ status: 200 })
   @IpAccessCheck()
   @Get('schedule')
-  async getSchedule(@Res({ passthrough: true }) res: Response, @RealIP() deviceIp: string): Promise<{ schedule: Schedule; file: File }> {
+  async getSchedule(
+    @Res({ passthrough: true }) res: Response,
+    @RealIP() deviceIp: string,
+  ): Promise<{ schedule: Schedule; file: File }> {
     return this.scheduleService.getSchedule(deviceIp);
   }
 }

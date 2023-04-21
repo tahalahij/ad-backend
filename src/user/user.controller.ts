@@ -24,8 +24,7 @@ export class UserController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin gets all users' })
   @ApiResponse({ status: 200, type: User })
-  @UseGuards(JwtAuthGuard)
-  @UseGuards(RoleAccessCheck([RolesType.ADMIN]))
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
   @Get('/admin/operators')
   async getOperators(): Promise<UserDocument[]> {
     return this.userService.getOperators();
@@ -34,8 +33,7 @@ export class UserController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin creates a operator' })
   @ApiResponse({ status: 200, type: User })
-  @UseGuards(JwtAuthGuard)
-  @UseGuards(RoleAccessCheck([RolesType.ADMIN]))
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
   @Post('/admin')
   async addUser(@Body() body: CreateUserDto): Promise<User> {
     return this.userService.createNewUser(body);
@@ -44,8 +42,7 @@ export class UserController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Operator updates his info' })
   @ApiResponse({ status: 200, type: User })
-  @UseGuards(JwtAuthGuard)
-  @UseGuards(RoleAccessCheck([RolesType.OPERATOR]))
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.OPERATOR]))
   @Patch('/operator')
   async resetPassword(@UserId('id') operatorId: string, @Body() body: UpdateUserDto): Promise<User> {
     return this.userService.updateUser(operatorId, body);
@@ -54,8 +51,7 @@ export class UserController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin updates a operator' })
   @ApiResponse({ status: 200, type: User })
-  @UseGuards(JwtAuthGuard)
-  @UseGuards(RoleAccessCheck([RolesType.ADMIN]))
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
   @Patch('/admin/:id')
   async updateUser(@Param('id') id: string, @Body() body: UpdateUserDto): Promise<User> {
     return this.userService.updateUser(id, body);
