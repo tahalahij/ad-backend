@@ -4,7 +4,6 @@ import { Device, DeviceDocument } from './device.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { CreateDeviceDto } from './dtos/create.device.dto';
 import { UpdateDeviceDto } from './dtos/update.device.dto';
-import { DeviceSchedule } from './device.schadule.schema';
 import { ScheduleService } from '../schedule/schedule.service';
 import { Schedule } from '../schedule/schedule.schema';
 import { File } from '../file/file.schema';
@@ -15,7 +14,6 @@ export class DeviceService {
     @InjectModel(Device.name) private deviceModel: Model<Device>,
 
     @Inject(forwardRef(() => ScheduleService)) private scheduleService: ScheduleService,
-    @InjectModel(DeviceSchedule.name) private deviceScheduleModel: Model<DeviceSchedule>,
   ) {}
 
   async createNewDevice(data: CreateDeviceDto): Promise<Device> {
