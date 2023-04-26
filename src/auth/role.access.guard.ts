@@ -20,7 +20,7 @@ export class RoleAccessCheckGuard implements CanActivate {
     const role = user.role;
     this.logger.log('RoleAccessCheckGuard', { role, whiteListRoles: this.whiteListRoles });
 
-    if (!this.whiteListRoles.includes(role)) {
+    if (this.whiteListRoles.includes(role)) {
       return true;
     } else {
       throw new ForbiddenException(`You dont have required access`);

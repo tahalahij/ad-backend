@@ -43,4 +43,8 @@ export class DeviceService {
     const device = await this.getDevice({ _id: deviceId });
     return this.scheduleService.getSchedule(device.ip);
   }
+  async checkDeviceIpMatchesOperator(ip: string, operatorId: string): Promise<boolean> {
+    const exists = await this.deviceModel.exists({ ip, operatorId });
+    return Boolean(exists);
+  }
 }

@@ -21,12 +21,12 @@ import { PaginationQueryDto } from './dtos/pagination.dto';
 import mongoose from 'mongoose';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { IpAccessCheck } from '../auth/ip.access.guard';
 import { extname } from 'path';
 import { UploadDto } from './dtos/upload.dto';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { RoleAccessCheck } from '../auth/role.access.guard';
 import { RolesType } from '../auth/role.type';
+import { IpAccessCheckGuard } from '../auth/ip.access.guard';
 
 function editFileName(req, file, callback) {
   const name = file.originalname.split('.')[0];
@@ -75,13 +75,13 @@ export class FileController {
   }
 
   @Get('download/:fileName')
-  @IpAccessCheck()
+  @UseGuards(IpAccessCheckGuard)
   download(@Param('fileName') fileName: string) {
     return this.fileService.fileBuffer(fileName);
   }
 
   @Get('download/stream/:fileName')
-  @IpAccessCheck()
+  @UseGuards(IpAccessCheckGuard)
   async stream(
     @Res({ passthrough: true }) res: Response,
     @Param('fileName') fileName: string,

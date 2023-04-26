@@ -1,17 +1,11 @@
-import {
-  applyDecorators,
-  CanActivate,
-  ExecutionContext,
-  ForbiddenException,
-  Injectable,
-  Logger,
-  UseGuards,
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, ForbiddenException, Inject, Injectable, Logger } from '@nestjs/common';
 import { parse } from 'path';
+import { DeviceService } from '../device/device.service';
 
 @Injectable()
 export class IpAccessCheckGuard implements CanActivate {
   private logger = new Logger(IpAccessCheckGuard.name);
+  constructor(@Inject(DeviceService) private deviceService: DeviceService) {}
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const requestIp = request.ip;
@@ -19,20 +13,18 @@ export class IpAccessCheckGuard implements CanActivate {
 
     const filename: string = parse(fileName).name;
 
-    const ip = filename.substring(filename.lastIndexOf('-') + 1, filename.length);
+    const ownerId = filename.substring(filename.lastIndexOf('-') + 1, filename.length);
+    const match = await this.deviceService.checkDeviceIpMatchesOperator(requestIp, ownerId);
     this.logger.log(fileName, {
       requestIp,
-      ip,
+      ownerId,
+      match,
     });
 
-    if (requestIp == ip) {
+    if (match) {
       return true;
     } else {
       throw new ForbiddenException(`You dont have accessed from this ip, your ip : ${requestIp}`);
     }
   }
-}
-
-export function IpAccessCheck() {
-  return applyDecorators(UseGuards(new IpAccessCheckGuard()));
 }

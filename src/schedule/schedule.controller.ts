@@ -3,13 +3,13 @@ import { ScheduleService } from './schedule.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { UserId } from '../auth/user.id.decorator';
 import { Schedule } from './schedule.schema';
-import { IpAccessCheck } from '../auth/ip.access.guard';
 import { RealIP } from 'nestjs-real-ip';
 import { ScheduleBodyDto } from './dtos/schedule.body.dto';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { RoleAccessCheck } from '../auth/role.access.guard';
 import { RolesType } from '../auth/role.type';
 import { File } from '../file/file.schema';
+import { IpAccessCheckGuard } from '../auth/ip.access.guard';
 
 @ApiTags('schedule')
 @Controller('schedule')
@@ -38,7 +38,7 @@ export class ScheduleController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'App gets schedule it supposed to show now' })
   @ApiResponse({ status: 200 })
-  @IpAccessCheck()
+  @UseGuards(IpAccessCheckGuard)
   @Get('schedule')
   async getSchedule(
     @Res({ passthrough: true }) res: Response,
