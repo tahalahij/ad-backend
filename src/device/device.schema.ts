@@ -11,6 +11,10 @@ export class Device {
   @Prop({ type: String, required: false })
   ip: string;
 
+
+  @Prop({ type: String, required: false })
+  mac: string;
+
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
   operatorId: mongoose.Types.ObjectId;
 

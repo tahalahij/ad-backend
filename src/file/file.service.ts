@@ -2,11 +2,11 @@ import { Injectable, Logger, StreamableFile } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { File, FileDocument } from './file.schema';
-import { PaginationQueryDto } from './dtos/pagination.dto';
 import { createReadStream, readFileSync } from 'fs';
 import { join } from 'path';
 import { UploadDto } from './dtos/upload.dto';
 import * as Buffer from 'buffer';
+import { PaginationQueryDto } from '../schedule/dtos/pagination.dto';
 
 @Injectable()
 export class FileService {

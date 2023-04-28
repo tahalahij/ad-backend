@@ -17,7 +17,6 @@ import { FileService } from './file.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { UserId } from '../auth/user.id.decorator';
 import { File } from './file.schema';
-import { PaginationQueryDto } from './dtos/pagination.dto';
 import mongoose from 'mongoose';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -27,6 +26,7 @@ import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagg
 import { RoleAccessCheck } from '../auth/role.access.guard';
 import { RolesType } from '../auth/role.type';
 import { IpAccessCheckGuard } from '../auth/ip.access.guard';
+import { PaginationQueryDto } from "../schedule/dtos/pagination.dto";
 
 function editFileName(req, file, callback) {
   const name = file.originalname.split('.')[0];

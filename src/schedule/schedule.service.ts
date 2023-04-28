@@ -9,6 +9,7 @@ import moment from 'moment';
 import { ScheduleTypeEnum } from './enums/schedule.type.enum';
 import { FileService } from '../file/file.service';
 import { File } from '../file/file.schema';
+import { DeviceService } from '../device/device.service';
 
 @Injectable()
 export class ScheduleService {
@@ -17,6 +18,7 @@ export class ScheduleService {
     @InjectModel(Schedule.name) private scheduleModel: Model<Schedule>,
     @InjectModel(Conductor.name) private conductorModel: Model<Conductor>,
     @Inject(forwardRef(() => FileService)) private fileService: FileService,
+    @Inject(forwardRef(() => DeviceService)) private deviceService: DeviceService,
   ) {}
 
   async getSchedules(userId: mongoose.Types.ObjectId, query: PaginationQueryDto): Promise<Schedule[]> {
@@ -82,12 +84,15 @@ export class ScheduleService {
     const file = await this.fileService.getFileById(String(conductor.conductor[nextConductor]));
     return { schedule, file };
   }
-  async upsertSchedule(operator: string, body: ScheduleBodyDto): Promise<Schedule> {
-    const schedule = await this.scheduleModel.findOneAndUpdate(
-      { ip: body.ip, operator },
-      { conductor: body.conductor },
-      { upsert: true, new: true },
-    );
+  async upsertSchedule(operator: string, { ip, ...rest }: ScheduleBodyDto): Promise<Schedule> {
+    const device = await this.deviceService.getDevice({ ip, operator });
+    if (!device) {
+      throw new NotFoundException(`Device doesnt exists with ip:${ip}, related to operator: ${operator}`);
+    }
+    const schedule = await this.scheduleModel.findOneAndUpdate({ deviceId: device.id, operator }, rest, {
+      upsert: true,
+      new: true,
+    });
     return schedule;
   }
   async getOperatorsSchedules(operator: string): Promise<Schedule[]> {
