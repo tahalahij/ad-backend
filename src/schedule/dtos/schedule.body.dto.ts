@@ -47,11 +47,11 @@ export class ScheduleBodyDto {
   @ValidateNested()
   to: PointInTimeDto;
 
-  @ApiProperty({ example: '11.22.33.2' })
+  @ApiProperty({ example: '2023-04-23T15:37:27.650+00:00' })
   @IsDateString()
   start: Date;
 
-  @ApiProperty({ example: '11.22.33.2' })
+  @ApiProperty({ example: '2023-04-23T15:37:27.650+00:00' })
   @IsDateString()
   end: Date;
 }

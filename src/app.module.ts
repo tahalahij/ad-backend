@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { FileModule } from './file/file.module';
 import { DeviceModule } from './device/device.module';
 import { ScheduleModule } from './schedule/schedule.module';
+import { StatisticsModule } from "./statistics/statistics.module";
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { ScheduleModule } from './schedule/schedule.module';
     FileModule,
     DeviceModule,
     AuthModule,
+    StatisticsModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env'],

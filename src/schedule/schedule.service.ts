@@ -10,6 +10,7 @@ import { ScheduleTypeEnum } from './enums/schedule.type.enum';
 import { FileService } from '../file/file.service';
 import { File } from '../file/file.schema';
 import { DeviceService } from '../device/device.service';
+import { StatisticsService } from '../statistics/statistics.service';
 
 @Injectable()
 export class ScheduleService {
@@ -19,6 +20,7 @@ export class ScheduleService {
     @InjectModel(Conductor.name) private conductorModel: Model<Conductor>,
     @Inject(forwardRef(() => FileService)) private fileService: FileService,
     @Inject(forwardRef(() => DeviceService)) private deviceService: DeviceService,
+    @Inject(forwardRef(() => StatisticsService)) private statisticsService: StatisticsService,
   ) {}
 
   async getSchedules(userId: mongoose.Types.ObjectId, query: PaginationQueryDto): Promise<Schedule[]> {
@@ -82,6 +84,11 @@ export class ScheduleService {
     conductor.nextIndex = nextConductor;
     await conductor.save();
     const file = await this.fileService.getFileById(String(conductor.conductor[nextConductor]));
+    await this.statisticsService.createStatisticRecord({
+      ip,
+      fileId: file._id,
+      fileType: file.type,
+    });
     return { schedule, file };
   }
   async upsertSchedule(operator: string, { ip, ...rest }: ScheduleBodyDto): Promise<Schedule> {

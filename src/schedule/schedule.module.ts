@@ -6,11 +6,13 @@ import { Schedule, ScheduleSchema } from './schedule.schema';
 import { Conductor, ConductorSchema } from './conductor.schema';
 import { FileModule } from '../file/file.module';
 import { DeviceModule } from '../device/device.module';
+import { StatisticsModule } from '../statistics/statistics.module';
 
 @Module({
   imports: [
     forwardRef(() => FileModule),
     forwardRef(() => DeviceModule),
+    forwardRef(() => StatisticsModule),
     MongooseModule.forFeature([
       { name: Conductor.name, schema: ConductorSchema },
       { name: Schedule.name, schema: ScheduleSchema },

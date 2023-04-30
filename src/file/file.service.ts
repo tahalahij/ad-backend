@@ -29,18 +29,20 @@ export class FileService {
   async getFiles(userId: mongoose.Types.ObjectId, query: PaginationQueryDto): Promise<File[]> {
     const limit = query.limit || 10;
     const page = query.page || 0;
-    return this.fileModel.find(
-      {
-        userId,
-      },
-      {},
-      {
-        skip: limit * page,
-        limit,
-      },
-    );
+    return this.fileModel
+      .find(
+        {
+          userId,
+        },
+        {},
+        {
+          skip: limit * page,
+          limit,
+        },
+      )
+      .lean();
   }
-  async getFileById(id: string | mongoose.Types.ObjectId): Promise<File> {
+  async getFileById(id: string | mongoose.Types.ObjectId): Promise<FileDocument> {
     return this.fileModel.findById(id);
   }
 
