@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { lookup } from 'mime-types';
 import { Statistics, StatisticsDocument } from './statistics.schema';
 import { GetStatisticsDto } from './dtos/get-statistics.dto';
 
@@ -20,7 +21,7 @@ export class StatisticsService {
   }): Promise<StatisticsDocument> {
     const statisticsDoc = await this.statisticsModel.create({
       fileId,
-      fileType,
+      fileType: lookup(fileType),
       ip,
     });
     this.logger.log('Statistics created', { statisticsDoc });
@@ -38,7 +39,7 @@ export class StatisticsService {
       filter.fileId = dto.fileId;
     }
     if (dto.fileType) {
-      filter.fileType = dto.fileType;
+      filter.fileType = lookup(dto.fileType);
     }
 
     if (dto.start) {

@@ -30,6 +30,7 @@
     "@nestjs/swagger": "^6.1.4",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.13.2",
+    "mime-types": "^2.1.35",
     "moment": "^2.29.4",
     "mongoose": "^6.8.4",
     "nestjs-real-ip": "^2.2.0",

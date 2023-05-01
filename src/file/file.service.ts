@@ -1,6 +1,7 @@
 import { Injectable, Logger, StreamableFile } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
+import { lookup } from 'mime-types';
 import { File, FileDocument } from './file.schema';
 import { createReadStream, readFileSync } from 'fs';
 import { join } from 'path';
@@ -20,7 +21,7 @@ export class FileService {
       name: file.filename,
       animationName: uploadDto.animationName,
       delay: uploadDto.delay,
-      type: file.mimetype.split('/')[0],
+      type: lookup(file.mimetype),
       createdAt: new Date(),
     });
     this.logger.log('File created', { fileDoc });
