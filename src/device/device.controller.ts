@@ -47,9 +47,8 @@ export class DeviceController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin updates a device' })
   @ApiResponse({ status: 200, type: Device })
-  @UseGuards(JwtAuthGuard)
-  @Patch('/admin')
-  @UseGuards(RoleAccessCheck([RolesType.ADMIN]))
+  @Patch('/admin/:id')
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
   async updateDevice(@Param('id') id: string, @Body() body: UpdateDeviceDto): Promise<Device> {
     return this.deviceService.updateDevice(id, body);
   }
@@ -57,9 +56,8 @@ export class DeviceController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'get device by id' })
   @ApiResponse({ status: 200, type: Device })
-  @UseGuards(JwtAuthGuard)
   @Get('/:id')
-  @UseGuards(RoleAccessCheck([RolesType.ADMIN, RolesType.OPERATOR]))
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN, RolesType.OPERATOR]))
   async getDevice(@Param('id') id: string): Promise<DeviceDocument> {
     return this.deviceService.getDevice({ _id: id });
   }
