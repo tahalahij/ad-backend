@@ -9,6 +9,9 @@ export class Conductor {
   @Prop({ type: [mongoose.Schema.Types.ObjectId], ref: 'File' })
   conductor: mongoose.Schema.Types.ObjectId[];
 
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
+  operator: string;
+
   @Prop({ type: Number })
   nextIndex: number;
 

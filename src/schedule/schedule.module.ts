@@ -7,6 +7,8 @@ import { Conductor, ConductorSchema } from './conductor.schema';
 import { FileModule } from '../file/file.module';
 import { DeviceModule } from '../device/device.module';
 import { StatisticsModule } from '../statistics/statistics.module';
+import { ConductorService } from './conductor.service';
+import { ConductorController } from './conductor.controller';
 
 @Module({
   imports: [
@@ -18,8 +20,8 @@ import { StatisticsModule } from '../statistics/statistics.module';
       { name: Schedule.name, schema: ScheduleSchema },
     ]),
   ],
-  providers: [ScheduleService],
-  controllers: [ScheduleController],
+  providers: [ScheduleService, ConductorService],
+  controllers: [ScheduleController, ConductorController],
   exports: [ScheduleService],
 })
 export class ScheduleModule {}
