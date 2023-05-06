@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Logger, Post, Res, UseGuards, Response, Patch, Param, Query } from '@nestjs/common';
+import { Body, Controller, Get, Logger, Post, UseGuards, Patch, Param, Query, Delete } from '@nestjs/common';
 import { ConductorService } from './conductor.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { UserId } from '../auth/user.id.decorator';
@@ -42,7 +42,7 @@ export class ConductorController {
   @ApiOperation({ summary: 'Operator removes its conductor' })
   @ApiResponse({ status: 200 })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.OPERATOR]))
-  @Patch('/:id')
+  @Delete('/:id')
   async delConductor(
     @Param('id') id: string,
     @UserId() adminId: string,
