@@ -46,7 +46,6 @@ export class ConductorController {
   async delConductor(
     @Param('id') id: string,
     @UserId() adminId: string,
-    @Body() conductorBody: ConductorBodyDto,
   ): Promise<Conductor> {
     return this.conductorService.delete(adminId, id);
   }

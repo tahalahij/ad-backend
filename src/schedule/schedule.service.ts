@@ -105,4 +105,12 @@ export class ScheduleService {
   async getOperatorsSchedules(operator: string): Promise<Schedule[]> {
     return this.scheduleModel.find({ operator });
   }
+
+  async delete(operator: string, id: string): Promise<Schedule> {
+    const exists = await this.scheduleModel.findOne({ _id: id, operator });
+    if (!exists) {
+      throw new NotFoundException('Schedule related to you not found');
+    }
+    return exists.remove();
+  }
 }

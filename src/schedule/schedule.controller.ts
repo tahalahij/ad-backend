@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Logger, Post, Res, UseGuards, Response } from '@nestjs/common';
+import { Body, Controller, Get, Logger, Post, Res, UseGuards, Response, Delete, Param } from '@nestjs/common';
 import { ScheduleService } from './schedule.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { UserId } from '../auth/user.id.decorator';
@@ -45,5 +45,13 @@ export class ScheduleController {
     @RealIP() deviceIp: string,
   ): Promise<{ schedule: Schedule; file: File }> {
     return this.scheduleService.getSchedule(deviceIp);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Operator removes schedule' })
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.OPERATOR]))
+  @Delete('/:id')
+  async delSchedule(@Param('id') id: string, @UserId() adminId: string): Promise<Schedule> {
+    return this.scheduleService.delete(adminId, id);
   }
 }
