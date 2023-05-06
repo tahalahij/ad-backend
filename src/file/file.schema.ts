@@ -23,7 +23,7 @@ export class File {
   animationName: string;
 
   @Prop({ type: mongoose.Schema.Types.Number, required: false })
-  delay: number;
+  delay: number; // in seconds
 
   @Prop({ type: Date, required: true })
   createdAt: mongoose.Schema.Types.Date;

@@ -7,6 +7,9 @@ export class Statistics {
   @Prop({ type: mongoose.Schema.Types.String })
   ip: string;
 
+  @Prop({ type: Number })
+  duration: number; // in seconds
+
   @Prop({ type: mongoose.Schema.Types.String })
   fileType: string;
 

@@ -18,7 +18,9 @@ export class StatisticsController {
   @ApiResponse({ status: 200, type: Statistics })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
   @Get('/')
-  async getFiles(@Query() queryDto: GetStatisticsDto): Promise<Statistics[]> {
+  async getFiles(
+    @Query() queryDto: GetStatisticsDto,
+  ): Promise<{ details: IterableIterator<[any, any]>; statistics: Statistics[] }> {
     return this.statisticsService.getStatistics(queryDto);
   }
 }

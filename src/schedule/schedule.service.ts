@@ -86,8 +86,7 @@ export class ScheduleService {
     const file = await this.fileService.getFileById(String(conductor.conductor[nextConductor]));
     await this.statisticsService.createStatisticRecord({
       ip,
-      fileId: file._id,
-      fileType: file.type,
+      file,
     });
     return { schedule, file };
   }
