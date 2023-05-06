@@ -12,6 +12,9 @@ export class Conductor {
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
   operator: string;
 
+  @Prop({ type: String })
+  name: string;
+
   @Prop({ type: Number })
   nextIndex: number;
 

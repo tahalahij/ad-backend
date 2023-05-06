@@ -29,12 +29,12 @@ export class ConductorService {
     return this.conductorModel.create({ operator, conductor, createdAt: new Date() });
   }
 
-  async update(operator: string, id: string, { conductor }: ConductorBodyDto): Promise<Conductor> {
+  async update(operator: string, id: string, body: ConductorBodyDto): Promise<Conductor> {
     const exists = await this.conductorModel.findOne({ _id: id, operator });
     if (!exists) {
       throw new NotFoundException('conductor related to you not found');
     }
-    return exists.update({ conductor });
+    return exists.update(body);
   }
 
   async delete(operator: string, id: string): Promise<Conductor> {
