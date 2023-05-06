@@ -26,7 +26,7 @@ export class ConductorService {
   }
 
   async create(operator: string, { conductor }: ConductorBodyDto): Promise<Conductor> {
-    return this.conductorModel.create({ operator, conductor });
+    return this.conductorModel.create({ operator, conductor, createdAt: new Date() });
   }
 
   async update(operator: string, id: string, { conductor }: ConductorBodyDto): Promise<Conductor> {
