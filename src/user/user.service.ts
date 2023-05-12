@@ -25,7 +25,7 @@ export class UserService {
     if (!user) {
       throw new UnauthorizedException(CONSTANTS.LOGIN_FAILED);
     }
-    const valid = this.CryptoService.hashValidation(password, user.password);
+    const valid = await this.CryptoService.hashValidation(password, user.password);
     if (!valid) {
       throw new UnauthorizedException(CONSTANTS.LOGIN_FAILED);
     }

@@ -31,16 +31,11 @@ export class FileService {
     const limit = query.limit || 10;
     const page = query.page || 0;
     return this.fileModel
-      .find(
-        {
-          userId,
-        },
-        {},
-        {
-          skip: limit * page,
-          limit,
-        },
-      )
+      .find({
+        userId,
+      })
+      .skip(limit * page)
+      .limit(limit)
       .lean();
   }
   async getFileById(id: string | mongoose.Types.ObjectId): Promise<FileDocument> {

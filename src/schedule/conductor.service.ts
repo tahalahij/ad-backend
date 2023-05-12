@@ -13,20 +13,17 @@ export class ConductorService {
   async getOperatorsConductors(operator: mongoose.Types.ObjectId, query: PaginationQueryDto): Promise<Conductor[]> {
     const limit = query.limit || 10;
     const page = query.page || 0;
-    return this.conductorModel.find(
-      {
+    return this.conductorModel
+      .find({
         operator,
-      },
-      {},
-      {
-        skip: limit * page,
-        limit,
-      },
-    );
+      })
+      .skip(limit * page)
+      .limit(limit)
+      .lean();
   }
 
-  async create(operator: string, { conductor }: ConductorBodyDto): Promise<Conductor> {
-    return this.conductorModel.create({ operator, conductor, createdAt: new Date() });
+  async create(operator: string, body: ConductorBodyDto): Promise<Conductor> {
+    return this.conductorModel.create({ operator, ...body, createdAt: new Date() });
   }
 
   async update(operator: string, id: string, body: ConductorBodyDto): Promise<Conductor> {

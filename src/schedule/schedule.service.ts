@@ -1,4 +1,4 @@
-import { forwardRef, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, forwardRef, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { Schedule } from './schedule.schema';
@@ -26,16 +26,12 @@ export class ScheduleService {
   async getSchedules(userId: mongoose.Types.ObjectId, query: PaginationQueryDto): Promise<Schedule[]> {
     const limit = query.limit || 10;
     const page = query.page || 0;
-    return this.scheduleModel.find(
-      {
+    return this.scheduleModel
+      .find({
         userId,
-      },
-      {},
-      {
-        skip: limit * page,
-        limit,
-      },
-    );
+      })
+      .skip(limit * page)
+      .limit(limit);
   }
   async getCurrentSchedule(ip: string): Promise<Schedule> {
     const now = moment();
@@ -90,19 +86,41 @@ export class ScheduleService {
     });
     return { schedule, file };
   }
-  async upsertSchedule(operator: string, { ip, ...rest }: ScheduleBodyDto): Promise<Schedule> {
+  async createSchedule(operator: string, { ip, conductor, ...rest }: ScheduleBodyDto): Promise<Schedule> {
     const device = await this.deviceService.getDevice({ ip, operator });
     if (!device) {
       throw new NotFoundException(`Device doesnt exists with ip:${ip}, related to operator: ${operator}`);
     }
-    const schedule = await this.scheduleModel.findOneAndUpdate({ deviceId: device.id, operator }, rest, {
-      upsert: true,
-      new: true,
-    });
-    return schedule;
+    const exists = await this.conductorModel.exists({ _id: conductor, operator });
+    if (!exists) {
+      throw new NotFoundException(`Conductor doesnt exists with id:${conductor}}, related to operator: ${operator}`);
+    }
+    if (rest.type === ScheduleTypeEnum.RECURSIVE) {
+      const schedules = await this.scheduleModel.find({
+        'from.hour': { $gt: rest.from.hour },
+        'to.hour': { $lt: rest.to.hour },
+        deviceId: device.id,
+        operator,
+        $day: { $in: rest.day },
+      });
+      schedules.map((s) => {
+        if (s.from.minute > rest.from.minute || s.to.minute < rest.to.minute) {
+          const message = `There is a schedule that overlaps with this, schedule
+           id: ${s._id}, from : ${s.from.hour}:${s.from.minute} -  ${s.to.hour}:${s.to.minute},  in ${s.day.filter(
+            (d) => rest.day.includes(d),
+          )} days`;
+          throw new BadRequestException(message);
+        }
+      });
+    }
+    //
+    return this.scheduleModel.create({ deviceId: device.id, operator, ...rest });
   }
   async getOperatorsSchedules(operator: string): Promise<Schedule[]> {
     return this.scheduleModel.find({ operator });
+  }
+  async getScheduleById(operator: string, id: string): Promise<Schedule> {
+    return this.scheduleModel.findOne({ operator, _id: id });
   }
 
   async delete(operator: string, id: string): Promise<Schedule> {

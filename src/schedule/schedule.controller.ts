@@ -17,12 +17,12 @@ export class ScheduleController {
   constructor(private scheduleService: ScheduleService) {}
   private logger = new Logger(ScheduleController.name);
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Operator updates or creates its schedule' })
+  @ApiOperation({ summary: 'Operator creates its schedule' })
   @ApiResponse({ status: 200 })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.OPERATOR]))
-  @Post('schedule')
-  async upsertSchedule(@UserId() adminId: string, @Body() scheduleBody: ScheduleBodyDto): Promise<Schedule> {
-    const schedule = await this.scheduleService.upsertSchedule(adminId, scheduleBody);
+  @Post('')
+  async createSchedule(@UserId() adminId: string, @Body() scheduleBody: ScheduleBodyDto): Promise<Schedule> {
+    const schedule = await this.scheduleService.createSchedule(adminId, scheduleBody);
     return schedule;
   }
 
@@ -30,7 +30,7 @@ export class ScheduleController {
   @ApiOperation({ summary: 'Operator gets his own schedules' })
   @ApiResponse({ status: 200 })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.OPERATOR]))
-  @Get('schedule/operators')
+  @Get('/operators')
   async getOperatorsSchedules(@UserId() operatorId: string): Promise<Schedule[]> {
     return this.scheduleService.getOperatorsSchedules(operatorId);
   }
@@ -39,7 +39,7 @@ export class ScheduleController {
   @ApiOperation({ summary: 'App gets schedule it supposed to show now' })
   @ApiResponse({ status: 200 })
   @UseGuards(IpAccessCheckGuard)
-  @Get('schedule')
+  @Get('')
   async getSchedule(
     @Res({ passthrough: true }) res: Response,
     @RealIP() deviceIp: string,
@@ -53,5 +53,13 @@ export class ScheduleController {
   @Delete('/:id')
   async delSchedule(@Param('id') id: string, @UserId() adminId: string): Promise<Schedule> {
     return this.scheduleService.delete(adminId, id);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Operator get schedule by id' })
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.OPERATOR]))
+  @Get('/:id')
+  async getScheduleById(@Param('id') id: string, @UserId() adminId: string): Promise<Schedule> {
+    return this.scheduleService.getScheduleById(adminId, id);
   }
 }

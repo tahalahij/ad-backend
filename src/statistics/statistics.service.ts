@@ -46,14 +46,9 @@ export class StatisticsService {
       filter.created_at['$lte'] = dto.end;
     }
     const statistics: Array<Statistics> = await this.statisticsModel
-      .find(
-        filter,
-        {},
-        {
-          skip: limit * page,
-          limit,
-        },
-      )
+      .find(filter)
+      .skip(limit * page)
+      .limit(limit)
       .lean();
     const details = new Map();
     statistics.map((s) => {
