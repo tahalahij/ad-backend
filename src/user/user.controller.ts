@@ -9,6 +9,7 @@ import { UpdateUserDto } from './dtos/update.user.dto';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { UserId } from '../auth/user.id.decorator';
 import { RoleAccessCheck } from '../auth/role.access.guard';
+import { OperatorUpdateOwnDto } from './dtos/operator.update.own.dto';
 
 @ApiTags('users')
 @Controller('users')
@@ -40,11 +41,20 @@ export class UserController {
   }
 
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'Admin updates his info' })
+  @ApiResponse({ status: 200, type: User })
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
+  @Patch('/admin')
+  async adminUpdateHisPass(@UserId('id') adminId: string, @Body() body: UpdateUserDto): Promise<User> {
+    return this.userService.updateUser(adminId, body);
+  }
+
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Operator updates his info' })
   @ApiResponse({ status: 200, type: User })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.OPERATOR]))
   @Patch('/operator')
-  async resetPassword(@UserId('id') operatorId: string, @Body() body: UpdateUserDto): Promise<User> {
+  async resetPassword(@UserId('id') operatorId: string, @Body() body: OperatorUpdateOwnDto): Promise<User> {
     return this.userService.updateUser(operatorId, body);
   }
 
