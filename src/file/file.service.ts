@@ -47,10 +47,12 @@ export class FileService {
     return readFileSync(join(process.cwd(), `/files/${fileName}`));
   }
 
-  dashboard(): Buffer.Buffer {
+  dashboard(): StreamableFile {
     const files = readdirSync(join(process.cwd(), `/public`));
-    return readFileSync(join(process.cwd(), '/public', files[0]));
+    const stream = createReadStream(join(process.cwd(), '/public', files[0]));
+    return new StreamableFile(stream);
   }
+
   fileStream(fileName: string): StreamableFile {
     const stream = createReadStream(join(process.cwd(), `/files/${fileName}`));
     return new StreamableFile(stream);
