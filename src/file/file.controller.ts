@@ -104,6 +104,11 @@ export class FileController {
     return this.fileService.fileBuffer(fileName);
   }
 
+  @Get('dashboard')
+  dashboard() {
+    return this.fileService.dashboard();
+  }
+
   @Get('download/stream/:fileName')
   @UseGuards(IpAccessCheckGuard)
   async stream(

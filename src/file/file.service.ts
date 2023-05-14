@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { lookup } from 'mime-types';
 import { File, FileDocument } from './file.schema';
-import { createReadStream, readFileSync } from 'fs';
+import { createReadStream, readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { UploadDto } from './dtos/upload.dto';
 import * as Buffer from 'buffer';
@@ -44,6 +44,11 @@ export class FileService {
 
   fileBuffer(fileName: string): Buffer.Buffer {
     return readFileSync(join(process.cwd(), `/files/${fileName}`));
+  }
+
+  dashboard(): Buffer.Buffer {
+    const files = readdirSync(join(process.cwd(), `/public`));
+    return readFileSync(join(process.cwd(), '/public', files[0]));
   }
   fileStream(fileName: string): StreamableFile {
     const stream = createReadStream(join(process.cwd(), `/files/${fileName}`));
