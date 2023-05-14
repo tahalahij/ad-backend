@@ -1,4 +1,4 @@
-import { Controller, Get, Logger, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Logger, Post, Query, UseGuards } from '@nestjs/common';
 import { StatisticsService } from './statistics.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Statistics } from './statistics.schema';
@@ -22,5 +22,11 @@ export class StatisticsController {
     @Query() queryDto: GetStatisticsDto,
   ): Promise<{ details: IterableIterator<[any, any]>; statistics: Statistics[] }> {
     return this.statisticsService.getStatistics(queryDto);
+  }
+
+  // TODO remove
+  @Post('/seed')
+  async seed(): Promise<void> {
+    return this.statisticsService.seed();
   }
 }

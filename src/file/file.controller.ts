@@ -104,6 +104,7 @@ export class FileController {
     return this.fileService.fileBuffer(fileName);
   }
 
+  @ApiOperation({ summary: 'returns a stream of dashboard pic ' })
   @Get('dashboard')
   dashboard() {
     return this.fileService.dashboard();
