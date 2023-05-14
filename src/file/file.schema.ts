@@ -16,8 +16,10 @@ export class File {
   name: string;
 
   @Prop({ type: mongoose.Schema.Types.String, required: true })
-  type: string;
+  originalName: string;
 
+  @Prop({ type: mongoose.Schema.Types.String, required: true })
+  type: string;
 
   @Prop({ type: mongoose.Schema.Types.String, required: false })
   animationName: string;

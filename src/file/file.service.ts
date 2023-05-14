@@ -19,6 +19,7 @@ export class FileService {
       ownerId,
       path: file.path,
       name: file.filename,
+      originalName: file.filename.split('-')[1] || file.filename,
       animationName: uploadDto?.animationName,
       delay: uploadDto?.delay,
       type: lookup(file.mimetype),

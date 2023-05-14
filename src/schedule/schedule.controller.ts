@@ -38,7 +38,6 @@ export class ScheduleController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'App gets schedule it supposed to show now' })
   @ApiResponse({ status: 200 })
-  @UseGuards(IpAccessCheckGuard)
   @Get('')
   async getSchedule(
     @Res({ passthrough: true }) res: Response,

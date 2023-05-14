@@ -5,7 +5,7 @@ import { Schedule } from './schedule.schema';
 import { PaginationQueryDto } from './dtos/pagination.dto';
 import { ScheduleBodyDto } from './dtos/schedule.body.dto';
 import { Conductor } from './conductor.schema';
-import moment from 'moment';
+import * as moment from 'moment';
 import { ScheduleTypeEnum } from './enums/schedule.type.enum';
 import { FileService } from '../file/file.service';
 import { File } from '../file/file.schema';
