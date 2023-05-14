@@ -34,6 +34,7 @@ export class ScheduleService {
       .limit(limit);
   }
   async getCurrentSchedule(ip: string): Promise<Schedule> {
+    // TODO fix
     const now = moment();
     const day = now.format('dddd').toUpperCase();
     const minute = now.toDate().getMinutes();
@@ -58,17 +59,20 @@ export class ScheduleService {
   }
 
   async getSchedule(ip: string): Promise<{ schedule: Schedule; file: File }> {
+    this.logger.log('ingetSchedule ', { ip });
     if (ip.slice(0, 7) == '::ffff:') {
       ip = ip.slice(7, ip.length);
     }
     let nextConductor;
     const schedule = await this.getCurrentSchedule(ip);
+
+    this.logger.log({ schedule, ip });
     if (!schedule) {
       return null;
     }
 
     const conductor = await this.conductorModel.findById(schedule.conductor);
-
+    this.logger.log({ conductor });
     if (conductor.conductor.length < 1) {
       throw new NotFoundException(`Conductor is empty for ip: ${ip}`);
     }
@@ -80,6 +84,7 @@ export class ScheduleService {
     conductor.nextIndex = nextConductor;
     await conductor.save();
     const file = await this.fileService.getFileById(String(conductor.conductor[nextConductor]));
+    this.logger.log({ file });
     await this.statisticsService.createStatisticRecord({
       ip,
       file,
@@ -95,6 +100,8 @@ export class ScheduleService {
     if (!exists) {
       throw new NotFoundException(`Conductor doesnt exists with id:${conductor}}, related to operator: ${operator}`);
     }
+    // TODO one times should not have overlap with one time
+    // TODO RECURSIVE should not have overlap with RECURSIVE
     if (rest.type === ScheduleTypeEnum.RECURSIVE) {
       const schedules = await this.scheduleModel.find({
         'from.hour': { $gt: rest.from.hour },

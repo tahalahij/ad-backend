@@ -9,6 +9,7 @@ export class IpAccessCheckGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const requestIp = request.ip;
+    this.logger.log('in IpAccessCheckGuard', { requestIp });
     const { fileName } = request.params;
 
     const filename: string = parse(fileName).name;
