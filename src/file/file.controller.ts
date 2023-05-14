@@ -26,7 +26,7 @@ import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagg
 import { RoleAccessCheck } from '../auth/role.access.guard';
 import { RolesType } from '../auth/role.type';
 import { IpAccessCheckGuard } from '../auth/ip.access.guard';
-import { PaginationQueryDto } from "../schedule/dtos/pagination.dto";
+import { PaginationQueryDto } from '../schedule/dtos/pagination.dto';
 
 function editFileName(req, file, callback) {
   const name = file.originalname.split('.')[0];
@@ -34,6 +34,13 @@ function editFileName(req, file, callback) {
   const extension = extname(file.originalname);
   const newName = `${new Date().getTime()}-${name}-${userId}${extension}`;
   console.log({ newName });
+
+  callback(null, newName);
+}
+
+function adminDashboardPic(req, file, callback) {
+  const extension = extname(file.originalname);
+  const newName = `dashboard${extension}`;
 
   callback(null, newName);
 }
@@ -72,6 +79,23 @@ export class FileController {
     this.logger.log('upload file:', { file, adminId, uploadBody });
     const createdFile = await this.fileService.createFile(adminId, file, uploadBody);
     return { fileName: file.filename, id: createdFile._id };
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Admin upload dashboard pic ' })
+  @ApiResponse({ status: 200 })
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
+  @Post('admin/dashboard/upload')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './public',
+        filename: adminDashboardPic,
+      }),
+    }),
+  )
+  async adminUploadDashboardPic(@UploadedFile() file: Express.Multer.File, @UserId() adminId: string) {
+    return 'uploaded';
   }
 
   @Get('download/:fileName')

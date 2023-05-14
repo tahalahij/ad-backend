@@ -114,7 +114,7 @@ export class ScheduleService {
       });
     }
     //
-    return this.scheduleModel.create({ deviceId: device.id, operator, ...rest });
+    return this.scheduleModel.create({ deviceId: device.id, operator, ip, createdAt: new Date(), conductor, ...rest });
   }
   async getOperatorsSchedules(operator: string): Promise<Schedule[]> {
     return this.scheduleModel.find({ operator });

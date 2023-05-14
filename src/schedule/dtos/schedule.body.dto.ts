@@ -45,7 +45,7 @@ export class ScheduleBodyDto {
   @ApiPropertyOptional({ example: [WeekDays.FRIDAY, WeekDays.MONDAY], description: 'if RECURSIVE then use this' })
   @IsOptional()
   @IsArray()
-  @IsEnum(ScheduleTypeEnum, { each: true })
+  @IsEnum(WeekDays, { each: true })
   day?: WeekDays[];
 
   @ApiPropertyOptional()

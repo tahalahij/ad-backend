@@ -19,8 +19,8 @@ export class FileService {
       ownerId,
       path: file.path,
       name: file.filename,
-      animationName: uploadDto.animationName,
-      delay: uploadDto.delay,
+      animationName: uploadDto?.animationName,
+      delay: uploadDto?.delay,
       type: lookup(file.mimetype),
       createdAt: new Date(),
     });
