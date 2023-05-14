@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsArray,
   IsDateString,
@@ -6,6 +6,7 @@ import {
   IsNotEmpty,
   IsNumber,
   IsObject,
+  IsOptional,
   IsString,
   ValidateNested,
 } from 'class-validator';
@@ -41,28 +42,33 @@ export class ScheduleBodyDto {
   @IsNotEmpty()
   type: ScheduleTypeEnum;
 
-  @ApiProperty({ example: [WeekDays.FRIDAY, WeekDays.MONDAY], description: 'if RECURSIVE then use this' })
+  @ApiPropertyOptional({ example: [WeekDays.FRIDAY, WeekDays.MONDAY], description: 'if RECURSIVE then use this' })
+  @IsOptional()
   @IsArray()
   @IsEnum(ScheduleTypeEnum, { each: true })
   day?: WeekDays[];
 
+  @ApiPropertyOptional()
+  @IsOptional()
   @Type(() => PointInTimeDto)
-  @ApiProperty()
   @IsObject()
   @ValidateNested()
   from?: PointInTimeDto;
 
+  @ApiPropertyOptional()
+  @IsOptional()
   @Type(() => PointInTimeDto)
-  @ApiProperty()
   @IsObject()
   @ValidateNested()
   to?: PointInTimeDto;
 
-  @ApiProperty({ example: '2023-04-23T15:37:27.650+00:00' })
+  @ApiPropertyOptional({ example: '2023-04-23T15:37:27.650+00:00' })
+  @IsOptional()
   @IsDateString()
   start?: Date;
 
-  @ApiProperty({ example: '2023-04-23T15:37:27.650+00:00' })
+  @ApiPropertyOptional({ example: '2023-04-23T15:37:27.650+00:00' })
+  @IsOptional()
   @IsDateString()
   end?: Date;
 }
