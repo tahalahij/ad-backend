@@ -49,7 +49,11 @@ export class FileService {
 
   dashboard(): StreamableFile {
     const files = readdirSync(join(process.cwd(), `/public`));
-    const stream = createReadStream(join(process.cwd(), '/public', files[0]));
+    let name = 'dashboard_default.jpg';
+    if (files.length > 1) {
+      name = files.find((f) => f !== name);
+    }
+    const stream = createReadStream(join(process.cwd(), '/public', name));
     return new StreamableFile(stream);
   }
 
