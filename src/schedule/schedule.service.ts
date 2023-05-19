@@ -12,6 +12,7 @@ import { File } from '../file/file.schema';
 import { DeviceService } from '../device/device.service';
 import { StatisticsService } from '../statistics/statistics.service';
 import { isDefined } from 'class-validator';
+import { GetSchedulesByAdminDto } from './dtos/get-schedules-by-admin.dto';
 
 @Injectable()
 export class ScheduleService {
@@ -24,15 +25,21 @@ export class ScheduleService {
     @Inject(forwardRef(() => StatisticsService)) private statisticsService: StatisticsService,
   ) {}
 
-  async getSchedules(userId: mongoose.Types.ObjectId, query: PaginationQueryDto): Promise<Schedule[]> {
-    const limit = query.limit || 10;
-    const page = query.page || 0;
+  async getSchedules(query: GetSchedulesByAdminDto): Promise<Schedule[]> {
+    const limit = query?.limit || 10;
+    const page = query?.page || 0;
+    const where: any = {};
+    if (query.operator) {
+      where.operator = query.operator;
+    }
+    if (query.deviceId) {
+      where.deviceId = query.deviceId;
+    }
     return this.scheduleModel
-      .find({
-        userId,
-      })
+      .find(where)
       .skip(limit * page)
       .limit(limit)
+      .populate('operator', 'conductor', 'deviceId')
       .lean();
   }
   async getCurrentSchedule(ip: string): Promise<Schedule> {
