@@ -11,6 +11,7 @@ import { FileService } from '../file/file.service';
 import { File } from '../file/file.schema';
 import { DeviceService } from '../device/device.service';
 import { StatisticsService } from '../statistics/statistics.service';
+import { isDefined } from 'class-validator';
 
 @Injectable()
 export class ScheduleService {
@@ -39,34 +40,41 @@ export class ScheduleService {
     const day = now.format('dddd').toUpperCase();
     const minute = now.toDate().getMinutes();
     const hour = now.toDate().getHours();
-    const onTime = await this.scheduleModel
+    this.logger.log('in getCurrentSchedule ', { now, day, minute, hour });
+    const oneTime = await this.scheduleModel
       .findOne({ ip, type: ScheduleTypeEnum.ONE_TIME })
-      .gte('start', now.toDate())
-      .lte('end', now.toDate());
-    if (onTime) {
+      .lte('start', now.toDate())
+      .gte('end', now.toDate());
+    this.logger.log('in getCurrentSchedule oneTime ', { oneTime });
+    if (oneTime) {
       // one time has higher priority
-      return onTime;
+      return oneTime;
     }
     const recursive = await this.scheduleModel
       .find({ ip, day, type: ScheduleTypeEnum.RECURSIVE })
-      .gte('from.hour', hour)
-      .lte('to.hour', hour);
+      .lte('from.hour', hour)
+      .gte('to.hour', hour);
+    this.logger.log('in getCurrentSchedule recursive ', { recursive });
     if (!recursive.length) {
       return;
     }
 
-    return recursive.find((s) => minute <= s.to.minute && minute >= s.from.minute);
+    return recursive.find((s) => {
+      return moment().isBetween(
+        moment().hour(s.from.hour).minute(s.from.minute),
+        moment().hour(s.to.hour).minute(s.to.minute),
+      );
+    });
   }
 
   async getSchedule(ip: string): Promise<{ schedule: Schedule; file: File }> {
-    this.logger.log('ingetSchedule ', { ip });
+    this.logger.log('in getSchedule ', { ip });
     if (ip.slice(0, 7) == '::ffff:') {
       ip = ip.slice(7, ip.length);
     }
-    let nextConductor;
     const schedule = await this.getCurrentSchedule(ip);
 
-    this.logger.log({ schedule, ip });
+    this.logger.log('getSchedule ', { schedule, ip });
     if (!schedule) {
       return null;
     }
@@ -76,14 +84,15 @@ export class ScheduleService {
     if (conductor.conductor.length < 1) {
       throw new NotFoundException(`Conductor is empty for ip: ${ip}`);
     }
-    if (!conductor.nextIndex) {
-      nextConductor = conductor.conductor[0];
-    } else {
-      nextConductor = conductor.nextIndex === conductor.conductor.length - 1 ? 0 : conductor.nextIndex + 1;
-    }
-    conductor.nextIndex = nextConductor;
+    const  nextIndex = isDefined(conductor.nextIndex)
+      ? conductor.nextIndex === conductor.conductor.length - 1 // end of conductor list
+        ? 0 // start from beginning
+        : conductor.nextIndex + 1 //next file
+      : 0; // start from beginning
+
+    conductor.nextIndex = nextIndex;
     await conductor.save();
-    const file = await this.fileService.getFileById(String(conductor.conductor[nextConductor]));
+    const file = await this.fileService.getFileById(String(conductor.conductor[nextIndex]));
     this.logger.log({ file });
     await this.statisticsService.createStatisticRecord({
       ip,
