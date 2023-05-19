@@ -22,7 +22,7 @@ export class FileService {
       originalName: file.filename.split('-')[1] || file.filename,
       animationName: uploadDto?.animationName,
       delay: uploadDto?.delay,
-      type: lookup(file.mimetype),
+      type: (lookup(file.filename) || 'image/').split('/')[0],
       createdAt: new Date(),
     });
     this.logger.log('File created', { fileDoc });
