@@ -12,6 +12,7 @@ import {
   UseGuards,
   Response,
   UseInterceptors,
+  Delete,
 } from '@nestjs/common';
 import { FileService } from './file.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -79,6 +80,15 @@ export class FileController {
     this.logger.log('upload file:', { file, adminId, uploadBody });
     const createdFile = await this.fileService.createFile(adminId, file, uploadBody);
     return { fileName: file.filename, id: createdFile._id };
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Operator delete its file by id' })
+  @ApiResponse({ status: 200 })
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.OPERATOR]))
+  @Delete('/:fileId')
+  async delete(@Param('fileId') fileId: string, @UserId() adminId: string) {
+    return this.fileService.deleteFile(adminId, fileId);
   }
 
   @ApiBearerAuth()

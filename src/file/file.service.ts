@@ -1,4 +1,4 @@
-import { Injectable, Logger, StreamableFile } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger, NotFoundException, StreamableFile } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { lookup } from 'mime-types';
@@ -8,11 +8,16 @@ import { join } from 'path';
 import { UploadDto } from './dtos/upload.dto';
 import * as Buffer from 'buffer';
 import { PaginationQueryDto } from '../schedule/dtos/pagination.dto';
+import { ConductorService } from '../schedule/conductor.service';
+import * as fs from 'fs';
 
 @Injectable()
 export class FileService {
   private logger = new Logger(FileService.name);
-  constructor(@InjectModel(File.name) private fileModel: Model<File>) {}
+  constructor(
+    @InjectModel(File.name) private fileModel: Model<File>,
+    @Inject(forwardRef(() => ConductorService)) private conductorService: ConductorService,
+  ) {}
 
   async createFile(ownerId: string, file: Express.Multer.File, uploadDto: UploadDto): Promise<FileDocument> {
     const fileDoc = await this.fileModel.create({
@@ -41,6 +46,16 @@ export class FileService {
   }
   async getFileById(id: string | mongoose.Types.ObjectId): Promise<FileDocument> {
     return this.fileModel.findById(id);
+  }
+
+  async deleteFile(admin: string, fileId: string): Promise<string> {
+    const file = await this.fileModel.findOne({ _id: fileId, ownerId: admin });
+    if (!file) {
+      throw new NotFoundException('file not found');
+    }
+    fs.unlink(file.path, this.logger.log);
+    await this.conductorService.removeFileFromConductors(file._id);
+    return 'file removed from conductors as well';
   }
 
   fileBuffer(fileName: string): Buffer.Buffer {

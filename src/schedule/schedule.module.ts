@@ -22,6 +22,6 @@ import { ConductorController } from './conductor.controller';
   ],
   providers: [ScheduleService, ConductorService],
   controllers: [ScheduleController, ConductorController],
-  exports: [ScheduleService],
+  exports: [ScheduleService, ConductorService],
 })
 export class ScheduleModule {}

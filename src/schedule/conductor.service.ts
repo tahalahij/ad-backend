@@ -26,6 +26,10 @@ export class ConductorService {
     return this.conductorModel.create({ operator, ...body, createdAt: new Date() });
   }
 
+  async removeFileFromConductors(fileId: string | mongoose.Types.ObjectId): Promise<any> {
+    return this.conductorModel.updateMany({}, { $pull: { conductor: fileId } });
+  }
+
   async update(operator: string, id: string, body: ConductorBodyDto): Promise<Conductor> {
     const exists = await this.conductorModel.findOne({ _id: id, operator });
     if (!exists) {
