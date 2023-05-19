@@ -22,7 +22,7 @@ export class DeviceService {
   async createNewDevice(data: CreateDeviceDto): Promise<Device> {
     const opearator = await this.userService.getOperatorById(data.operatorId);
     if (!opearator) {
-      throw new BadRequestException("Operator not found");
+      throw new BadRequestException('Operator not found');
     }
     return this.deviceModel.create({
       ...data,
@@ -40,7 +40,9 @@ export class DeviceService {
     return this.deviceModel
       .find({ ...rest })
       .skip(limit * page)
-      .limit(limit);
+      .limit(limit)
+      .populate('operatorId')
+      .lean();
   }
 
   async getDevice(filter = {}): Promise<DeviceDocument> {

@@ -15,7 +15,7 @@ export class UserService {
   constructor(private CryptoService: CryptoService, @InjectModel(User.name) private userModel: Model<User>) {}
 
   public async getOperators(): Promise<UserDocument[]> {
-    return this.userModel.find({ role: RolesType.OPERATOR });
+    return this.userModel.find({ role: RolesType.OPERATOR }).lean();
   }
   public async getOperatorById(id: string): Promise<UserDocument> {
     return this.userModel.findById(id);

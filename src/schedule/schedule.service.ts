@@ -32,10 +32,10 @@ export class ScheduleService {
         userId,
       })
       .skip(limit * page)
-      .limit(limit);
+      .limit(limit)
+      .lean();
   }
   async getCurrentSchedule(ip: string): Promise<Schedule> {
-    // TODO fix
     const now = moment();
     const day = now.format('dddd').toUpperCase();
     const minute = now.toDate().getMinutes();
@@ -50,10 +50,11 @@ export class ScheduleService {
       // one time has higher priority
       return oneTime;
     }
-    const recursive = await this.scheduleModel
+    const recursive: Schedule[] = await this.scheduleModel
       .find({ ip, day, type: ScheduleTypeEnum.RECURSIVE })
       .lte('from.hour', hour)
-      .gte('to.hour', hour);
+      .gte('to.hour', hour)
+      .lean();
     this.logger.log('in getCurrentSchedule recursive ', { recursive });
     if (!recursive.length) {
       return;
@@ -114,7 +115,8 @@ export class ScheduleService {
       const recursive = await this.scheduleModel
         .find({ ip, day: rest.day, type: ScheduleTypeEnum.RECURSIVE, deviceId: device.id, operator })
         .lte('from.hour', rest.from.hour)
-        .gte('to.hour', rest.to.hour);
+        .gte('to.hour', rest.to.hour)
+        .lean();
 
       recursive.forEach((r) => {
         const from = moment().hour(rest.from.hour).minute(rest.from.minute);
@@ -158,7 +160,7 @@ export class ScheduleService {
     return this.scheduleModel.create({ deviceId: device.id, operator, ip, createdAt: new Date(), conductor, ...rest });
   }
   async getOperatorsSchedules(operator: string): Promise<Schedule[]> {
-    return this.scheduleModel.find({ operator });
+    return this.scheduleModel.find({ operator }).lean();
   }
   async getScheduleById(operator: string, id: string): Promise<Schedule> {
     return this.scheduleModel.findOne({ operator, _id: id });
