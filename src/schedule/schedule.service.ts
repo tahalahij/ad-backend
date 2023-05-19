@@ -84,7 +84,7 @@ export class ScheduleService {
     if (conductor.conductor.length < 1) {
       throw new NotFoundException(`Conductor is empty for ip: ${ip}`);
     }
-    const  nextIndex = isDefined(conductor.nextIndex)
+    const nextIndex = isDefined(conductor.nextIndex)
       ? conductor.nextIndex === conductor.conductor.length - 1 // end of conductor list
         ? 0 // start from beginning
         : conductor.nextIndex + 1 //next file
@@ -110,21 +110,46 @@ export class ScheduleService {
       throw new NotFoundException(`Conductor doesnt exists with id:${conductor}}, related to operator: ${operator}`);
     }
     // TODO one times should not have overlap with one time
-    // TODO RECURSIVE should not have overlap with RECURSIVE
     if (rest.type === ScheduleTypeEnum.RECURSIVE) {
-      const schedules = await this.scheduleModel.find({
-        'from.hour': { $gt: rest.from.hour },
-        'to.hour': { $lt: rest.to.hour },
+      const recursive = await this.scheduleModel
+        .find({ ip, day: rest.day, type: ScheduleTypeEnum.RECURSIVE, deviceId: device.id, operator })
+        .lte('from.hour', rest.from.hour)
+        .gte('to.hour', rest.to.hour);
+
+      recursive.forEach((r) => {
+        const from = moment().hour(rest.from.hour).minute(rest.from.minute);
+        const to = moment().hour(rest.to.hour).minute(rest.to.minute);
+        const fromOverlap = from.isBetween(
+          moment().hour(r.from.hour).minute(r.from.minute),
+          moment().hour(r.to.hour).minute(r.to.minute),
+        );
+        const toOverlap = to.isBetween(
+          moment().hour(r.from.hour).minute(r.from.minute),
+          moment().hour(r.to.hour).minute(r.to.minute),
+        );
+        const message = `There is a schedule that overlaps with this, schedule
+           id: ${r._id}, ${fromOverlap ? `from: ${r.from.hour}:${r.from.minute}` : ''} ${
+          toOverlap ? `to: ${r.to.hour}:${r.to.minute}` : ''
+        },  in ${r.day.filter((d) => rest.day.includes(d))} days`;
+        throw new BadRequestException(message);
+      });
+    } else {
+      // one time
+      const oneTimes = await this.scheduleModel.find({
+        ip,
+        type: ScheduleTypeEnum.ONE_TIME,
         deviceId: device.id,
         operator,
-        $day: { $in: rest.day },
       });
-      schedules.map((s) => {
-        if (s.from.minute > rest.from.minute || s.to.minute < rest.to.minute) {
+      oneTimes.forEach((ot: any) => {
+        const start = moment(rest.start);
+        const end = moment(rest.end);
+        const startOverlap = start.isBetween(moment(ot.start), moment(ot.end));
+        const endOverlap = end.isBetween(moment(ot.start), moment(ot.end));
+
+        if (startOverlap || endOverlap) {
           const message = `There is a schedule that overlaps with this, schedule
-           id: ${s._id}, from : ${s.from.hour}:${s.from.minute} -  ${s.to.hour}:${s.to.minute},  in ${s.day.filter(
-            (d) => rest.day.includes(d),
-          )} days`;
+           id: ${ot._id}, ${ot.start} - ${ot.end}`;
           throw new BadRequestException(message);
         }
       });

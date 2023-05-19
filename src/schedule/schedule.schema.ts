@@ -25,6 +25,9 @@ export class Schedule {
   deviceId: mongoose.Types.ObjectId;
 
   @Prop({ type: String, required: true })
+  name: string; // name of schedule
+
+  @Prop({ type: String, required: true })
   ip: string; // redundancy of device id, used for performance and not querying db for device
 
   @Prop({ type: String, enum: ScheduleTypeEnum })

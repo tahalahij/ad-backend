@@ -29,6 +29,11 @@ export class ScheduleBodyDto {
   @IsNotEmpty()
   conductor: string;
 
+  @ApiProperty({ example: 'scheulde 1', description: 'name of schedule' })
+  @IsString()
+  @IsNotEmpty()
+  name: string;
+
   @ApiProperty({ example: '11.22.33.2', description: 'ip of the device' })
   @IsString()
   @IsNotEmpty()
