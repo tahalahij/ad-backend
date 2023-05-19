@@ -30,7 +30,7 @@ import { APP_PIPE } from '@nestjs/core';
         uri: config.get('MONGO_CONNECTION_URL'),
         useNewUrlParser: true,
         useUnifiedTopology: true,
-        dbName:config.get('MONGO_DB_NAME')
+        dbName: config.get('MONGO_DB_NAME'),
       }),
       inject: [ConfigService],
     }),
