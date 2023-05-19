@@ -8,7 +8,10 @@ export class IpAccessCheckGuard implements CanActivate {
   constructor(@Inject(DeviceService) private deviceService: DeviceService) {}
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const requestIp = request.ip;
+    let requestIp = request.ip;
+    if (requestIp.slice(0, 7) == '::ffff:') {
+      requestIp = requestIp.slice(7, requestIp.length);
+    }
     this.logger.log('in IpAccessCheckGuard', { requestIp });
     const { fileName } = request.params;
 
