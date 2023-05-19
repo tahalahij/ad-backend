@@ -39,11 +39,9 @@ export class ScheduleController {
   @ApiOperation({ summary: 'App gets schedule it supposed to show now' })
   @ApiResponse({ status: 200 })
   @Get('')
-  async getSchedule(
-    @Res({ passthrough: true }) res: Response,
-    @RealIP() deviceIp: string,
-  ): Promise<{ schedule: Schedule; file: File }> {
-    return this.scheduleService.getSchedule(deviceIp);
+  async getSchedule(@Res({ passthrough: true }) res: Response, @RealIP() deviceIp: string): Promise<File> {
+    const data = await this.scheduleService.getSchedule(deviceIp);
+    return data?.file;
   }
 
   @ApiBearerAuth()
