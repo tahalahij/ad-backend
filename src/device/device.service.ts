@@ -20,10 +20,16 @@ export class DeviceService {
   ) {}
 
   async createNewDevice(data: CreateDeviceDto): Promise<Device> {
-    const opearator = await this.userService.getOperatorById(data.operatorId);
-    if (!opearator) {
+    const operator = await this.userService.getOperatorById(data.operatorId);
+    if (!operator) {
       throw new BadRequestException('Operator not found');
     }
+
+    const exists = await this.deviceModel.findOne({ ip: data.ip });
+    if (exists) {
+      throw new BadRequestException('Device with this ip exists');
+    }
+
     return this.deviceModel.create({
       ...data,
       createdAt: new Date(),
@@ -31,6 +37,12 @@ export class DeviceService {
   }
 
   async updateDevice(id: string, updateObj: UpdateDeviceDto): Promise<Device> {
+    if (updateObj.ip) {
+      const exists = await this.deviceModel.findOne({ ip: updateObj.ip });
+      if (exists) {
+        throw new BadRequestException('Device with this ip exists');
+      }
+    }
     return this.deviceModel.findByIdAndUpdate(id, updateObj);
   }
 
