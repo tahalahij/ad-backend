@@ -1,6 +1,7 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Inject, Injectable, Logger } from '@nestjs/common';
 import { parse } from 'path';
 import { DeviceService } from '../device/device.service';
+import { RolesType } from './role.type';
 
 @Injectable()
 export class IpAccessCheckGuard implements CanActivate {
@@ -8,6 +9,13 @@ export class IpAccessCheckGuard implements CanActivate {
   constructor(@Inject(DeviceService) private deviceService: DeviceService) {}
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
+    const user = request.user;
+    const role = user.role;
+
+    if (role === RolesType.ADMIN) {
+      return true;
+    }
+
     let requestIp = request.ip;
     if (requestIp.slice(0, 7) == '::ffff:') {
       requestIp = requestIp.slice(7, requestIp.length);
