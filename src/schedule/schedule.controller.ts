@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Logger, Post, Res, UseGuards, Response, Delete, Param } from '@nestjs/common';
+import { Body, Controller, Get, Logger, Post, Res, UseGuards, Response, Delete, Param, Query } from '@nestjs/common';
 import { ScheduleService } from './schedule.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { UserId } from '../auth/user.id.decorator';
@@ -10,6 +10,7 @@ import { RoleAccessCheck } from '../auth/role.access.guard';
 import { RolesType } from '../auth/role.type';
 import { File } from '../file/file.schema';
 import { IpAccessCheckGuard } from '../auth/ip.access.guard';
+import { GetSchedulesByAdminDto } from './dtos/get-schedules-by-admin.dto';
 
 @ApiTags('schedule')
 @Controller('schedule')
@@ -33,6 +34,15 @@ export class ScheduleController {
   @Get('/operators')
   async getOperatorsSchedules(@UserId() operatorId: string): Promise<Schedule[]> {
     return this.scheduleService.getOperatorsSchedules(operatorId);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Admin gets schedules' })
+  @ApiResponse({ status: 200 })
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
+  @Get('/admin')
+  async adminGetSchedules(@Query() query: GetSchedulesByAdminDto): Promise<Schedule[]> {
+    return this.scheduleService.getSchedules(query);
   }
 
   @ApiBearerAuth()
