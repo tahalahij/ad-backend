@@ -48,14 +48,17 @@ export class FileService {
     return this.fileModel.findById(id);
   }
 
-  async deleteFile(admin: string, fileId: string): Promise<string> {
+  async deleteFile(admin: string, fileId: string): Promise<{ message: string }> {
     const file = await this.fileModel.findOne({ _id: fileId, ownerId: admin });
     if (!file) {
       throw new NotFoundException('file not found');
     }
-    fs.unlink(file.path, this.logger.log);
+    fs.unlink(join(process.cwd(), file.path), (param) => {
+      this.logger.log('remove file', { param });
+    });
     await this.conductorService.removeFileFromConductors(file._id);
-    return 'file removed from conductors as well';
+    await file.remove();
+    return { message: 'file removed from conductors as well' };
   }
 
   fileBuffer(fileName: string): Buffer.Buffer {
