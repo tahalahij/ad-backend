@@ -33,12 +33,12 @@ export class FileService {
     this.logger.log('File created', { fileDoc });
     return fileDoc;
   }
-  async getFiles(userId: mongoose.Types.ObjectId, query: PaginationQueryDto): Promise<File[]> {
+  async getFiles(ownerId: mongoose.Types.ObjectId, query: PaginationQueryDto): Promise<File[]> {
     const limit = query.limit || 10;
     const page = query.page || 0;
     return this.fileModel
       .find({
-        userId,
+        ownerId,
       })
       .skip(limit * page)
       .limit(limit)
