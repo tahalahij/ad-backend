@@ -128,4 +128,14 @@ export class FileController {
   ): Promise<StreamableFile> {
     return this.fileService.fileStream(fileName);
   }
+
+  @Get('admin/download/stream/:fileName')
+  @UseGuards(IpAccessCheckGuard)
+  async streamForAdmin(
+    @Res({ passthrough: true }) res: Response,
+    @Param('fileName') fileName: string,
+    @Query('auth_token') token: string,
+  ): Promise<StreamableFile> {
+    return this.fileService.fileStream(fileName);
+  }
 }
