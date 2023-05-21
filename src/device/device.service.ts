@@ -38,8 +38,8 @@ export class DeviceService {
 
   async updateDevice(id: string, updateObj: UpdateDeviceDto): Promise<Device> {
     if (updateObj.ip) {
-      const exists = await this.deviceModel.findOne({ ip: updateObj.ip });
-      if (exists) {
+      const countSimilarIP = await this.deviceModel.count({ ip: updateObj.ip });
+      if (countSimilarIP > 1) {
         throw new BadRequestException('Device with this ip exists');
       }
     }
