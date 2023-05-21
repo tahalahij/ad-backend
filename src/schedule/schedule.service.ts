@@ -108,19 +108,18 @@ export class ScheduleService {
     });
     return { schedule, file };
   }
-  async createSchedule(operator: string, { ip, conductor, ...rest }: ScheduleBodyDto): Promise<Schedule> {
-    const device = await this.deviceService.getDevice({ ip, operator });
+  async createSchedule(operator: string, { deviceId, conductor, ...rest }: ScheduleBodyDto): Promise<Schedule> {
+    const device = await this.deviceService.getDevice({ _id: deviceId, operator });
     if (!device) {
-      throw new NotFoundException(`Device doesnt exists with ip:${ip}, related to operator: ${operator}`);
+      throw new NotFoundException(`Device doesnt exists with id:${deviceId}, related to operator: ${operator}`);
     }
     const exists = await this.conductorModel.exists({ _id: conductor, operator });
     if (!exists) {
       throw new NotFoundException(`Conductor doesnt exists with id:${conductor}}, related to operator: ${operator}`);
     }
-    // TODO one times should not have overlap with one time
     if (rest.type === ScheduleTypeEnum.RECURSIVE) {
       const recursive = await this.scheduleModel
-        .find({ ip, day: rest.day, type: ScheduleTypeEnum.RECURSIVE, deviceId: device.id, operator })
+        .find({ day: rest.day, type: ScheduleTypeEnum.RECURSIVE, deviceId: device.id, operator })
         .lte('from.hour', rest.from.hour)
         .gte('to.hour', rest.to.hour)
         .lean();
@@ -136,16 +135,24 @@ export class ScheduleService {
           moment().hour(r.from.hour).minute(r.from.minute),
           moment().hour(r.to.hour).minute(r.to.minute),
         );
-        const message = `There is a schedule that overlaps with this, schedule
+        console.log({
+          r,
+          from,
+          to,
+          fromOverlap,
+          toOverlap,
+        });
+        if (toOverlap || fromOverlap) {
+          const message = `There is a schedule that overlaps with this, schedule
            id: ${r._id}, ${fromOverlap ? `from: ${r.from.hour}:${r.from.minute}` : ''} ${
-          toOverlap ? `to: ${r.to.hour}:${r.to.minute}` : ''
-        },  in ${r.day.filter((d) => rest.day.includes(d))} days`;
-        throw new BadRequestException(message);
+            toOverlap ? `to: ${r.to.hour}:${r.to.minute}` : ''
+          },  in ${r.day.filter((d) => rest.day.includes(d))} days`;
+          throw new BadRequestException(message);
+        }
       });
     } else {
       // one time
       const oneTimes = await this.scheduleModel.find({
-        ip,
         type: ScheduleTypeEnum.ONE_TIME,
         deviceId: device.id,
         operator,
@@ -164,7 +171,14 @@ export class ScheduleService {
       });
     }
     //
-    return this.scheduleModel.create({ deviceId: device.id, operator, ip, createdAt: new Date(), conductor, ...rest });
+    return this.scheduleModel.create({
+      deviceId: deviceId,
+      operator,
+      ip: device.ip,
+      createdAt: new Date(),
+      conductor,
+      ...rest,
+    });
   }
   async getOperatorsSchedules(operator: string): Promise<Schedule[]> {
     return this.scheduleModel.find({ operator }).lean();

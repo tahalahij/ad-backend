@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { UserLoginDto } from './dtos/user.login.dto';
 import { Model } from 'mongoose';
 import { User, UserDocument } from './user.schema';
@@ -9,10 +9,16 @@ import { UserJwtPayload } from '../auth/user.jwt.type';
 import { RolesType } from '../auth/role.type';
 import { UpdateUserDto } from './dtos/update.user.dto';
 import { CreateUserDto } from './dtos/create.user.dto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UserService {
-  constructor(private CryptoService: CryptoService, @InjectModel(User.name) private userModel: Model<User>) {}
+  private logger = new Logger(UserService.name);
+  constructor(
+    private CryptoService: CryptoService,
+    @InjectModel(User.name) private userModel: Model<User>,
+    private readonly configService: ConfigService,
+  ) {}
 
   public async getOperators(): Promise<UserDocument[]> {
     return this.userModel.find({ role: RolesType.OPERATOR }).lean();
@@ -59,30 +65,15 @@ export class UserService {
   }
 
   async seed() {
-    await this.userModel.create({
+    const admin = await this.userModel.create({
       createdAt: new Date(),
       name: 'Admin',
       username: 'Admin',
       role: RolesType.ADMIN,
-      ip: process.env.ADMIN_IP,
-      mac: '1.1.1.1',
+      ip: this.configService.get('ADMIN_IP'),
+      mac: this.configService.get('ADMIN_MAC'),
       password: await this.CryptoService.hashPassword('khorram'),
     });
-    await this.userModel.create({
-      createdAt: new Date(),
-      name: 'operator of x',
-      username: 'operator',
-      role: RolesType.OPERATOR,
-      ip: '1.1.1.1',
-      mac: '1.1.1.1',
-      password: await this.CryptoService.hashPassword('operator'),
-    });
-  }
-  async findByIp(ip: string) {
-    const user = await this.userModel.findOne({ ip });
-    if (!user) {
-      throw new NotFoundException(`Ip ${ip} not recognized `);
-    }
-    return user;
+    this.logger.log('seed successful', { admin });
   }
 }

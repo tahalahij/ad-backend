@@ -22,38 +22,6 @@ export class StatisticsService {
     this.logger.log('Statistics created', { statisticsDoc });
     return statisticsDoc;
   }
-  async seed() {
-    const statisticsDoc = await this.statisticsModel.insertMany([
-      {
-        fileId: '6460ef4735ed9e4a4fb00b6e',
-        duration: 30,
-        fileType: lookup('jpeg'),
-        ip: '1.1.1.1',
-        createdAt: new Date(),
-      },
-      {
-        fileId: '6460ef4735ed9e4a4fb00b6e',
-        duration: 30,
-        fileType: lookup('jpeg'),
-        ip: '2.2.2.2',
-        createdAt: new Date(),
-      },
-      {
-        fileId: '6460ef4735ed9e4a4fb00b6e',
-        duration: 40,
-        fileType: lookup('jpeg'),
-        ip: '1.1.1.1',
-        createdAt: new Date(),
-      },
-      {
-        fileId: '6460ef4735ed9e4a4fb00b6e',
-        duration: 222,
-        fileType: lookup('png'),
-        ip: '3.3.3.3',
-        createdAt: new Date(),
-      },
-    ]);
-  }
 
   async getStatistics(
     dto: GetStatisticsDto,

@@ -23,10 +23,4 @@ export class StatisticsController {
   ): Promise<{ details: IterableIterator<[any, any]>; statistics: Statistics[] }> {
     return this.statisticsService.getStatistics(queryDto);
   }
-
-  // TODO remove
-  @Post('/seed')
-  async seed(): Promise<void> {
-    return this.statisticsService.seed();
-  }
 }

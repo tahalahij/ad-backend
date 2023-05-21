@@ -16,12 +16,6 @@ import { OperatorUpdateOwnDto } from './dtos/operator.update.own.dto';
 export class UserController {
   constructor(private userService: UserService) {}
 
-  // for test
-  @Post('/seed')
-  async seed(): Promise<void> {
-    return this.userService.seed();
-  }
-
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin gets all users' })
   @ApiResponse({ status: 200, type: User })
