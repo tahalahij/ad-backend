@@ -181,7 +181,7 @@ export class ScheduleService {
     });
   }
   async getOperatorsSchedules(operator: string): Promise<Schedule[]> {
-    return this.scheduleModel.find({ operator }).lean();
+    return this.scheduleModel.find({ operator }).populate('deviceId').lean();
   }
   async getScheduleById(operator: string, id: string): Promise<Schedule> {
     return this.scheduleModel.findOne({ operator, _id: id });

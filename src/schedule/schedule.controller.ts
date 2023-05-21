@@ -9,7 +9,6 @@ import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagg
 import { RoleAccessCheck } from '../auth/role.access.guard';
 import { RolesType } from '../auth/role.type';
 import { File } from '../file/file.schema';
-import { IpAccessCheckGuard } from '../auth/ip.access.guard';
 import { GetSchedulesByAdminDto } from './dtos/get-schedules-by-admin.dto';
 
 @ApiTags('schedule')
