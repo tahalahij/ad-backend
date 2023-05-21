@@ -130,12 +130,14 @@ export class FileController {
   }
 
   @Get('admin/download/stream/:fileName')
-  @UseGuards(IpAccessCheckGuard)
   async streamForAdmin(
     @Res({ passthrough: true }) res: Response,
     @Param('fileName') fileName: string,
     @Query('auth_token') token: string,
   ): Promise<StreamableFile> {
+    console.log({
+      token,
+    });
     return this.fileService.fileStream(fileName);
   }
 }
