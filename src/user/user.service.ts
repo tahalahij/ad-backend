@@ -64,7 +64,7 @@ export class UserService {
       name: 'Admin',
       username: 'Admin',
       role: RolesType.ADMIN,
-      ip: '1.1.1.1',
+      ip: process.env.ADMIN_IP,
       mac: '1.1.1.1',
       password: await this.CryptoService.hashPassword('khorram'),
     });
