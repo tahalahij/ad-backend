@@ -5,9 +5,8 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { SystemSetting, SystemSettingDocument } from './system-setting.schema';
 import { RoleAccessCheck } from '../auth/role.access.guard';
 import { RolesType } from '../auth/role.type';
-import { Schedule } from '../schedule/schedule.schema';
-import { File } from '../file/file.schema';
 import { UpdateSystemSettingDto } from './dtos/update.system.setting.dto';
+import { SystemSettingsEnum } from './enum/system-settings.enum';
 
 @ApiTags('system-settings')
 @Controller('system-settings')
@@ -37,7 +36,7 @@ export class SystemSettingController {
   @ApiResponse({ status: 200, type: SystemSetting })
   @Get('/:name')
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
-  async getSystemSetting(@Param('name') name: string): Promise<SystemSetting> {
+  async getSystemSetting(@Param('name') name: SystemSettingsEnum): Promise<SystemSetting> {
     return this.systemSettingService.getSystemSetting(name);
   }
 }

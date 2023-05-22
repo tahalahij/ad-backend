@@ -1,12 +1,13 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
+import { SystemSettingsEnum } from './enum/system-settings.enum';
 
 export type SystemSettingDocument = SystemSetting & mongoose.Document;
 
 @Schema()
 export class SystemSetting {
   @Prop({ type: String, required: true, trim: true })
-  name: string;
+  name: SystemSettingsEnum;
 
   @Prop({ type: String, required: false })
   value: string;

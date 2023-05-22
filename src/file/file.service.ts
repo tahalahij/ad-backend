@@ -1,4 +1,12 @@
-import { forwardRef, Inject, Injectable, Logger, NotFoundException, StreamableFile } from '@nestjs/common';
+import {
+  BadRequestException,
+  forwardRef,
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
+  StreamableFile,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { lookup } from 'mime-types';
@@ -10,6 +18,8 @@ import * as Buffer from 'buffer';
 import { PaginationQueryDto } from '../schedule/dtos/pagination.dto';
 import { ConductorService } from '../schedule/conductor.service';
 import * as fs from 'fs';
+import { SystemSettingService } from '../system-settings/system-setting.service';
+import { SystemSettingsEnum } from '../system-settings/enum/system-settings.enum';
 
 @Injectable()
 export class FileService {
@@ -17,9 +27,14 @@ export class FileService {
   constructor(
     @InjectModel(File.name) private fileModel: Model<File>,
     @Inject(forwardRef(() => ConductorService)) private conductorService: ConductorService,
+    private systemSettingService: SystemSettingService,
   ) {}
 
   async createFile(ownerId: string, file: Express.Multer.File, uploadDto: UploadDto): Promise<FileDocument> {
+    const sizeLimit = await this.systemSettingService.getSystemSetting(SystemSettingsEnum.FILE_SIZE_LIMIT_IN_MEGA_BYTE);
+    if (10 ** 6 * Number(sizeLimit.value) < file.size) {
+      throw new BadRequestException(`فایل نمیتواند از  ${sizeLimit.value} مگابایت بزرگتر باشد`);
+    }
     const fileDoc = await this.fileModel.create({
       ownerId,
       path: file.path,

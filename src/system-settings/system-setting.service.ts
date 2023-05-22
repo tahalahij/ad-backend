@@ -9,7 +9,7 @@ export class SystemSettingService {
   private logger = new Logger(SystemSettingService.name);
   constructor(@InjectModel(SystemSetting.name) private systemSettingModel: Model<SystemSetting>) {}
 
-  async getSystemSetting(name: string): Promise<SystemSetting> {
+  async getSystemSetting(name: SystemSettingsEnum): Promise<SystemSetting> {
     const systemSetting = await this.systemSettingModel.findOne({ name }).lean();
     if (!systemSetting) {
       throw new NotFoundException(' تنظیم سیستم پیدا نشد');
