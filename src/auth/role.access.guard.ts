@@ -23,7 +23,7 @@ export class RoleAccessCheckGuard implements CanActivate {
     if (this.whiteListRoles.includes(role)) {
       return true;
     } else {
-      throw new ForbiddenException(`You dont have required access`);
+      throw new ForbiddenException(`شما دسترسی های مورد نیاز را ندارید`);
     }
   }
 }

@@ -51,7 +51,7 @@ export class FileService {
   async deleteFile(admin: string, fileId: string): Promise<{ message: string }> {
     const file = await this.fileModel.findOne({ _id: fileId, ownerId: admin });
     if (!file) {
-      throw new NotFoundException('file not found');
+      throw new NotFoundException('فایل پیدا نشد');
     }
     fs.unlink(join(process.cwd(), file.path), (param) => {
       this.logger.log('remove file', { param });

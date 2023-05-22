@@ -30,7 +30,7 @@ export class IpAccessCheckGuard implements CanActivate {
     if (match) {
       return true;
     } else {
-      throw new ForbiddenException(`You dont have accessed from this ip, your ip : ${requestIp}`);
+      throw new ForbiddenException(`شما از این ایپی نمیتوانید دسترسی پیدا بکنید ایپی شما: ${requestIp} `);
     }
   }
 }

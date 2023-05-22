@@ -1,3 +1,3 @@
 export enum CONSTANTS {
-  LOGIN_FAILED = 'Email or password is incorrect',
+  LOGIN_FAILED = 'نام کاربری یا رمز ورود اشتباه است',
 }

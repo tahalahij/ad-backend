@@ -33,7 +33,7 @@ export class ConductorService {
   async update(operator: string, id: string, body: ConductorBodyDto): Promise<Conductor> {
     const exists = await this.conductorModel.findOne({ _id: id, operator });
     if (!exists) {
-      throw new NotFoundException('conductor related to you not found');
+      throw new NotFoundException('کنداکتور مربوط به این اپراتور نیست');
     }
     return exists.update(body);
   }
@@ -41,7 +41,7 @@ export class ConductorService {
   async delete(operator: string, id: string): Promise<Conductor> {
     const exists = await this.conductorModel.findOne({ _id: id, operator });
     if (!exists) {
-      throw new NotFoundException('conductor related to you not found');
+      throw new NotFoundException('کنداکتور مربوط به این اپراتور نیست');
     }
     return exists.remove();
   }

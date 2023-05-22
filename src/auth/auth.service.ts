@@ -15,7 +15,7 @@ export class AuthService {
     const operator = await this.userService.getOperatorById(String(payload.id));
     this.logger.log('trying to log in ', { operator, ip });
     if (operator.ip !== ip) {
-      throw new UnauthorizedException(`Your ip is ${ip}, but you can only login with ${operator.ip}`);
+      throw new UnauthorizedException(`ایپی شما ${ip} است .شما فقط از ایپی ${operator.ip} میتوانید وارد شوید`);
     }
     return {
       access_token: this.jwtService.sign(payload),

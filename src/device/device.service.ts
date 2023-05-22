@@ -22,12 +22,12 @@ export class DeviceService {
   async createNewDevice(data: CreateDeviceDto): Promise<Device> {
     const operator = await this.userService.getOperatorById(data.operatorId);
     if (!operator) {
-      throw new BadRequestException('Operator not found');
+      throw new BadRequestException('اپراتور پیدا نشد');
     }
 
     const exists = await this.deviceModel.findOne({ ip: data.ip });
     if (exists) {
-      throw new BadRequestException('Device with this ip exists');
+      throw new BadRequestException('دستگاه با این ایپی وجود ندارد');
     }
 
     return this.deviceModel.create({
@@ -40,7 +40,7 @@ export class DeviceService {
     if (updateObj.ip) {
       const countSimilarIP = await this.deviceModel.count({ ip: updateObj.ip });
       if (countSimilarIP > 1) {
-        throw new BadRequestException('Device with this ip exists');
+        throw new BadRequestException('دستگاه با این ایپی وجود ندارد');
       }
     }
     return this.deviceModel.findByIdAndUpdate(id, updateObj);
@@ -60,7 +60,7 @@ export class DeviceService {
   async getDevice(filter = {}): Promise<DeviceDocument> {
     const device = await this.deviceModel.findOne(filter);
     if (!device) {
-      throw new NotFoundException(`Device not found for: ${JSON.stringify(filter)}`);
+      throw new NotFoundException(`دستگاه پیدا نشد`);
     }
     return device;
   }

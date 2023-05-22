@@ -55,7 +55,7 @@ export class UserService {
     if (updateObj.username) {
       const exists = await this.userModel.exists({ username: updateObj.username });
       if (!exists) {
-        throw new BadRequestException('Operator with this username already exists');
+        throw new BadRequestException('اپراتور با این نام وجود دارد');
       }
     }
     if (updateObj.password) {

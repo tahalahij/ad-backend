@@ -90,7 +90,7 @@ export class ScheduleService {
     const conductor = await this.conductorModel.findById(schedule.conductor);
     this.logger.log({ conductor });
     if (conductor.conductor.length < 1) {
-      throw new NotFoundException(`Conductor is empty for ip: ${ip}`);
+      throw new NotFoundException(`کنداکتور مربوط به این ایپی پیدا نشد: ${ip}`);
     }
     const nextIndex = isDefined(conductor.nextIndex)
       ? conductor.nextIndex === conductor.conductor.length - 1 // end of conductor list
@@ -111,43 +111,29 @@ export class ScheduleService {
   async createSchedule(operator: string, { deviceId, conductor, ...rest }: ScheduleBodyDto): Promise<Schedule> {
     const device = await this.deviceService.getDevice({ _id: deviceId, operator });
     if (!device) {
-      throw new NotFoundException(`Device doesnt exists with id:${deviceId}, related to operator: ${operator}`);
+      throw new NotFoundException(`دستگاه با شناسه ${deviceId} مربوط به اپراتور ${operator} پیدا نشد`);
     }
     const exists = await this.conductorModel.exists({ _id: conductor, operator });
     if (!exists) {
-      throw new NotFoundException(`Conductor doesnt exists with id:${conductor}}, related to operator: ${operator}`);
+      throw new NotFoundException(`کنداکتور با شناسه ${conductor} مربوط به اپراتور ${operator} پیدا نشد`);
     }
     if (rest.type === ScheduleTypeEnum.RECURSIVE) {
-      const recursive = await this.scheduleModel
-        .find({ day: rest.day, type: ScheduleTypeEnum.RECURSIVE, deviceId: device.id, operator })
-        .lte('from.hour', rest.from.hour)
-        .gte('to.hour', rest.to.hour)
+      const recursives = await this.scheduleModel
+        .find({ type: ScheduleTypeEnum.RECURSIVE, deviceId: device.id, operator })
         .lean();
-
-      recursive.forEach((r) => {
-        const from = moment().hour(rest.from.hour).minute(rest.from.minute);
-        const to = moment().hour(rest.to.hour).minute(rest.to.minute);
-        const fromOverlap = from.isBetween(
-          moment().hour(r.from.hour).minute(r.from.minute),
-          moment().hour(r.to.hour).minute(r.to.minute),
-        );
-        const toOverlap = to.isBetween(
-          moment().hour(r.from.hour).minute(r.from.minute),
-          moment().hour(r.to.hour).minute(r.to.minute),
-        );
-        console.log({
-          r,
-          from,
-          to,
-          fromOverlap,
-          toOverlap,
-        });
-        if (toOverlap || fromOverlap) {
-          const message = `There is a schedule that overlaps with this, schedule
-           id: ${r._id}, ${fromOverlap ? `from: ${r.from.hour}:${r.from.minute}` : ''} ${
-            toOverlap ? `to: ${r.to.hour}:${r.to.minute}` : ''
-          },  in ${r.day.filter((d) => rest.day.includes(d))} days`;
-          throw new BadRequestException(message);
+      recursives.forEach((r) => {
+        const intersectDays = r.day.filter((day) => rest.day.includes(day));
+        if (intersectDays.length) {
+          const from = moment().hour(rest.from.hour).minute(rest.from.minute).unix();
+          const to = moment().hour(rest.to.hour).minute(rest.to.minute).unix();
+          const recursiveFrom = moment().hour(r.from.hour).minute(r.from.minute).unix();
+          const recursiveTo = moment().hour(r.to.hour).minute(r.to.minute).unix();
+          const maxOfStarts = Math.max(from, recursiveFrom);
+          const minOfEnds = Math.min(to, recursiveTo);
+          if (maxOfStarts < minOfEnds) {
+            const message = ` برنامه ${r.name} با این برنامه در روزهای ${intersectDays}تداخل دارد `;
+            throw new BadRequestException(message);
+          }
         }
       });
     } else {
@@ -164,8 +150,7 @@ export class ScheduleService {
         const endOverlap = end.isBetween(moment(ot.start), moment(ot.end));
 
         if (startOverlap || endOverlap) {
-          const message = `There is a schedule that overlaps with this, schedule
-           id: ${ot._id}, ${ot.start} - ${ot.end}`;
+          const message = ` برنامه ${ot.name} با این برنامه تداخل دارد`;
           throw new BadRequestException(message);
         }
       });
@@ -190,7 +175,7 @@ export class ScheduleService {
   async delete(operator: string, id: string): Promise<Schedule> {
     const exists = await this.scheduleModel.findOne({ _id: id, operator });
     if (!exists) {
-      throw new NotFoundException('Schedule related to you not found');
+      throw new NotFoundException('برنامه مروبط به این اپراتور پیدا نشد');
     }
     return exists.remove();
   }
