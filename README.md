@@ -36,8 +36,11 @@ $ npm run start:prod
 ```bash
 $ npm run start:repl
 
-#example repl use :
-get(UserService).seed()
+#seed admin :
+get(UserService).seedAdmin()
+
+#seed system settings :
+get(SystemSettingService).seedSystemSetting()
 ```
 
 ```bash

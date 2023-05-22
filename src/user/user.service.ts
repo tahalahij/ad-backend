@@ -64,7 +64,7 @@ export class UserService {
     return this.userModel.findByIdAndUpdate(id, updateObj);
   }
 
-  async seed() {
+  async seedAdmin() {
     const admin = await this.userModel.create({
       createdAt: new Date(),
       name: 'Admin',
@@ -74,6 +74,6 @@ export class UserService {
       mac: this.configService.get('ADMIN_MAC'),
       password: await this.CryptoService.hashPassword('khorram'),
     });
-    this.logger.log('seed successful', { admin });
+    this.logger.log('seedAdmin successful', { admin });
   }
 }
