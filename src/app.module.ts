@@ -10,6 +10,7 @@ import { DeviceModule } from './device/device.module';
 import { ScheduleModule } from './schedule/schedule.module';
 import { StatisticsModule } from './statistics/statistics.module';
 import { APP_PIPE } from '@nestjs/core';
+import { SystemSettingModule } from './system-settings/system-setting.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { APP_PIPE } from '@nestjs/core';
     DeviceModule,
     AuthModule,
     StatisticsModule,
+    SystemSettingModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env'],
