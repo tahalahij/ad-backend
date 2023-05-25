@@ -67,7 +67,15 @@ export class DeviceController {
   @ApiResponse({ status: 200 })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
   @Get('/admin/schedule/:deviceId')
-  async getSchedule(@Param('deviceId') deviceId: string): Promise<{ schedule: Schedule; file: File }> {
+  async adminGetSchedule(@Param('deviceId') deviceId: string): Promise<{ schedule: Schedule; file: File }> {
+    return this.deviceService.getDevicesCurrentSchedule(deviceId);
+  }
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Admin gets current schedule of device' })
+  @ApiResponse({ status: 200 })
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.OPERATOR]))
+  @Get('/operator/schedule/:deviceId')
+  async operatorGetSchedule(@Param('deviceId') deviceId: string): Promise<{ schedule: Schedule; file: File }> {
     return this.deviceService.getDevicesCurrentSchedule(deviceId);
   }
 }
