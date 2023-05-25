@@ -11,6 +11,8 @@ export class Device {
   @Prop({ type: String, required: false })
   ip: string;
 
+  @Prop({ type: Boolean, required: false, default: true })
+  enabled: boolean;
 
   @Prop({ type: String, required: false })
   mac: string;

@@ -33,6 +33,7 @@ export class DeviceService {
     return this.deviceModel.create({
       ...data,
       createdAt: new Date(),
+      enabled: true,
     });
   }
 
@@ -70,7 +71,7 @@ export class DeviceService {
     return this.scheduleService.getSchedule(device.ip);
   }
   async checkDeviceIpMatchesOperator(ip: string, operatorId: string): Promise<boolean> {
-    const exists = await this.deviceModel.exists({ ip, operatorId });
+    const exists = await this.deviceModel.exists({ ip, operatorId, enabled: true });
     return Boolean(exists);
   }
 }

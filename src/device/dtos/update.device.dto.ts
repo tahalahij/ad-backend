@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsOptional } from 'class-validator';
+import { IsString, IsOptional, IsBoolean } from "class-validator";
 
 export class UpdateDeviceDto {
   @ApiPropertyOptional({ example: 'monitor 1' })
@@ -21,4 +21,9 @@ export class UpdateDeviceDto {
   @IsString()
   @IsOptional()
   operatorId?: string;
+
+  @ApiPropertyOptional({ example: true })
+  @IsBoolean()
+  @IsOptional()
+  enabled?: boolean;
 }

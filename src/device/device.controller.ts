@@ -78,4 +78,13 @@ export class DeviceController {
   async operatorGetSchedule(@Param('deviceId') deviceId: string): Promise<{ schedule: Schedule; file: File }> {
     return this.deviceService.getDevicesCurrentSchedule(deviceId);
   }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Controller admin disables device' })
+  @ApiResponse({ status: 200 })
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.CONTROLLER]))
+  @Patch('/controller/:deviceId')
+  async disableDevice(@Param('deviceId') deviceId: string): Promise<Device> {
+    return this.deviceService.updateDevice(deviceId, { enabled: false });
+  }
 }
