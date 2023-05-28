@@ -140,4 +140,16 @@ export class FileController {
     });
     return this.fileService.fileStream(fileName);
   }
+
+  @Get('controller/download/stream/:fileName')
+  async streamForController(
+    @Res({ passthrough: true }) res: Response,
+    @Param('fileName') fileName: string,
+    @Query('auth_token') token: string,
+  ): Promise<StreamableFile> {
+    console.log({
+      token,
+    });
+    return this.fileService.fileStream(fileName);
+  }
 }

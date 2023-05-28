@@ -26,7 +26,7 @@ export class UserController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Admin creates a operator' })
+  @ApiOperation({ summary: 'Admin creates a operator or controller' })
   @ApiResponse({ status: 200, type: User })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
   @Post('/admin')

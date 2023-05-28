@@ -45,7 +45,6 @@ export class UserService {
   async createNewUser(body: CreateUserDto): Promise<User> {
     return this.userModel.create({
       ...body,
-      role: RolesType.OPERATOR,
       password: await this.CryptoService.hashPassword(body.password),
       createdAt: new Date(),
     });

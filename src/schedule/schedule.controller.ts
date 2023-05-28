@@ -43,6 +43,14 @@ export class ScheduleController {
   async adminGetSchedules(@Query() query: GetSchedulesByAdminDto): Promise<Schedule[]> {
     return this.scheduleService.getSchedules(query);
   }
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Controller gets schedules' })
+  @ApiResponse({ status: 200 })
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.CONTROLLER]))
+  @Get('/controller')
+  async controllerGetSchedules(@Query() query: GetSchedulesByAdminDto): Promise<Schedule[]> {
+    return this.scheduleService.getSchedules(query);
+  }
 
   @ApiBearerAuth()
   @ApiOperation({ summary: 'App gets schedule it supposed to show now' })
