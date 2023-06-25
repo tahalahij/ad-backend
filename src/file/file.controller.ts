@@ -52,6 +52,18 @@ export class FileController {
   private logger = new Logger(FileController.name);
 
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'Admin gets files' })
+  @ApiResponse({ status: 200, type: File })
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
+  @Get('/')
+  async adminGetFiles(
+    @UserId() operatorId: mongoose.Types.ObjectId,
+    @Query() queryDto: PaginationQueryDto,
+  ): Promise<File[]> {
+    return this.fileService.getFiles(operatorId, queryDto);
+  }
+
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Operator gets its files' })
   @ApiResponse({ status: 200, type: File })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.OPERATOR]))

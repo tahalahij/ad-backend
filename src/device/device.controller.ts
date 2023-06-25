@@ -71,7 +71,7 @@ export class DeviceController {
     return this.deviceService.getDevicesCurrentSchedule(deviceId);
   }
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Admin gets current schedule of device' })
+  @ApiOperation({ summary: 'Operator gets current schedule of device' })
   @ApiResponse({ status: 200 })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.OPERATOR]))
   @Get('/operator/schedule/:deviceId')

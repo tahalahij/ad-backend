@@ -10,12 +10,14 @@ import { RoleAccessCheck } from '../auth/role.access.guard';
 import { RolesType } from '../auth/role.type';
 import { File } from '../file/file.schema';
 import { GetSchedulesByAdminDto } from './dtos/get-schedules-by-admin.dto';
+import { OperatorIdQueryDto } from './dtos/operator.id.query.dto';
 
 @ApiTags('schedule')
 @Controller('schedule')
 export class ScheduleController {
   constructor(private scheduleService: ScheduleService) {}
   private logger = new Logger(ScheduleController.name);
+
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Operator creates its schedule' })
   @ApiResponse({ status: 200 })
@@ -23,6 +25,19 @@ export class ScheduleController {
   @Post('')
   async createSchedule(@UserId() adminId: string, @Body() scheduleBody: ScheduleBodyDto): Promise<Schedule> {
     const schedule = await this.scheduleService.createSchedule(adminId, scheduleBody);
+    return schedule;
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Admin creates schedule for operator' })
+  @ApiResponse({ status: 200 })
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
+  @Post('admin/:operatorId')
+  async adminCreateSchedule(
+    @Query() query: OperatorIdQueryDto,
+    @Body() scheduleBody: ScheduleBodyDto,
+  ): Promise<Schedule> {
+    const schedule = await this.scheduleService.createSchedule(query.operatorId, scheduleBody);
     return schedule;
   }
 
@@ -67,6 +82,14 @@ export class ScheduleController {
   @Delete('/:id')
   async delSchedule(@Param('id') id: string, @UserId() adminId: string): Promise<Schedule> {
     return this.scheduleService.delete(adminId, id);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Admin removes schedule' })
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
+  @Delete('admin/:id')
+  async adminDelSchedule(@Param('id') id: string): Promise<Schedule> {
+    return this.scheduleService.adminDelete(id);
   }
 
   @ApiBearerAuth()

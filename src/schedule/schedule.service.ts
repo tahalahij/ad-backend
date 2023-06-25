@@ -179,4 +179,11 @@ export class ScheduleService {
     }
     return exists.remove();
   }
+  async adminDelete(id: string): Promise<Schedule> {
+    const exists = await this.scheduleModel.findOne({ _id: id });
+    if (!exists) {
+      throw new NotFoundException('برنامه مروبط به این اپراتور پیدا نشد');
+    }
+    return exists.remove();
+  }
 }
