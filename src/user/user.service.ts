@@ -73,6 +73,16 @@ export class UserService {
       mac: this.configService.get('ADMIN_MAC'),
       password: await this.CryptoService.hashPassword('khorram'),
     });
-    this.logger.log('seedAdmin successful', { admin });
+
+    const controller = await this.userModel.create({
+      createdAt: new Date(),
+      name: 'Controller',
+      username: 'control',
+      role: RolesType.CONTROLLER,
+      ip: this.configService.get('ADMIN_IP'),
+      mac: this.configService.get('ADMIN_MAC'),
+      password: await this.CryptoService.hashPassword('khorram'),
+    });
+    this.logger.log('seedAdmin successful', { admin, controller });
   }
 }

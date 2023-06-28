@@ -11,6 +11,7 @@ import { RolesType } from '../auth/role.type';
 import { UserId } from '../auth/user.id.decorator';
 import { Schedule } from '../schedule/schedule.schema';
 import { File } from '../file/file.schema';
+import { ControllerUpdateDeviceDto } from './dtos/controller.update.device.dto';
 
 @ApiTags('devices')
 @Controller('devices')
@@ -89,11 +90,11 @@ export class DeviceController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Controller admin disables device' })
+  @ApiOperation({ summary: 'Controller admin disables/enables device' })
   @ApiResponse({ status: 200 })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.CONTROLLER]))
   @Patch('/controller/:deviceId')
-  async disableDevice(@Param('deviceId') deviceId: string): Promise<Device> {
-    return this.deviceService.updateDevice(deviceId, { enabled: false });
+  async disableDevice(@Param('deviceId') deviceId: string, @Body() body: ControllerUpdateDeviceDto): Promise<Device> {
+    return this.deviceService.updateDevice(deviceId, body);
   }
 }

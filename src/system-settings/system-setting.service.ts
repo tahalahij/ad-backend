@@ -24,6 +24,15 @@ export class SystemSettingService {
   async getSystemSettings(): Promise<SystemSettingDocument[]> {
     return this.systemSettingModel.find({}).lean();
   }
+
+  async upsertSystemSetting(name: SystemSettingsEnum, value: any): Promise<SystemSetting> {
+    return this.systemSettingModel.findOneAndUpdate(
+      { name },
+      { value, createdAt: new Date() },
+      { upsert: true, new: true },
+    );
+  }
+
   async seedSystemSetting() {
     const admin = await this.systemSettingModel.create({
       createdAt: new Date(),

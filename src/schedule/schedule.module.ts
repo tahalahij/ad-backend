@@ -9,6 +9,7 @@ import { DeviceModule } from '../device/device.module';
 import { StatisticsModule } from '../statistics/statistics.module';
 import { ConductorService } from './conductor.service';
 import { ConductorController } from './conductor.controller';
+import { Azan, AzanSchema } from './azan.schema';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { ConductorController } from './conductor.controller';
     MongooseModule.forFeature([
       { name: Conductor.name, schema: ConductorSchema },
       { name: Schedule.name, schema: ScheduleSchema },
+      { name: Azan.name, schema: AzanSchema },
     ]),
   ],
   providers: [ScheduleService, ConductorService],

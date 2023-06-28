@@ -13,13 +13,16 @@ import {
   Response,
   UseInterceptors,
   Delete,
+  UploadedFiles,
+  ParseFilePipe,
+  FileTypeValidator,
 } from '@nestjs/common';
 import { FileService } from './file.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { UserId } from '../auth/user.id.decorator';
 import { File } from './file.schema';
 import mongoose from 'mongoose';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { UploadDto } from './dtos/upload.dto';
@@ -95,6 +98,51 @@ export class FileController {
   }
 
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'Admin uploads xlsx files for azan' })
+  @ApiResponse({ status: 200 })
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
+  @Post('admin/azan-time-xlsx')
+  @UseInterceptors(
+    FilesInterceptor('file', 10, {
+      storage: diskStorage({
+        destination: './temp',
+        filename: function editFileName(req, file, callback) {
+          callback(null, file.originalname);
+        },
+      }),
+    }),
+  )
+  async uploadAzanXlsx(
+    @UploadedFiles()
+    files: // new ParseFilePipe({ validators: [new FileTypeValidator({ fileType: 'csv' })] })
+    Array<Express.Multer.File>,
+  ) {
+    await this.fileService.uploadAzanXlsx(files);
+    return 'فایل ها با موفقیت اضافه شدند';
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Admin uploads azan file' })
+  @ApiResponse({ status: 200 })
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
+  @Post('admin/azan-file')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './files/azan',
+        filename: function editFileName(req, file, callback) {
+          callback(null, file.originalname);
+        },
+      }),
+    }),
+  )
+  async uploadAzanFile(@UploadedFile() file: Express.Multer.File) {
+    this.logger.log('upload file:', { file });
+    await this.fileService.uploadAzanFile(file);
+    return 'فایل اذان با موفقیت اپدیت شد';
+  }
+
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Operator delete its file by id' })
   @ApiResponse({ status: 200 })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.OPERATOR]))
@@ -118,6 +166,11 @@ export class FileController {
   )
   async adminUploadDashboardPic(@UploadedFile() file: Express.Multer.File, @UserId() adminId: string) {
     return 'uploaded';
+  }
+
+  @Get('download/azan')
+  downloadAzan(): StreamableFile {
+    return this.fileService.downloadAzan();
   }
 
   @Get('download/:fileName')

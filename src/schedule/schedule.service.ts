@@ -1,8 +1,7 @@
 import { BadRequestException, forwardRef, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import mongoose, { Model } from 'mongoose';
+import { Model } from 'mongoose';
 import { Schedule } from './schedule.schema';
-import { PaginationQueryDto } from './dtos/pagination.dto';
 import { ScheduleBodyDto } from './dtos/schedule.body.dto';
 import { Conductor } from './conductor.schema';
 import * as moment from 'moment';
@@ -13,12 +12,16 @@ import { DeviceService } from '../device/device.service';
 import { StatisticsService } from '../statistics/statistics.service';
 import { isDefined } from 'class-validator';
 import { GetSchedulesByAdminDto } from './dtos/get-schedules-by-admin.dto';
+import { Azan } from './azan.schema';
+import { AzanTypeEnum } from './enums/azan.type.enum';
+import { Moment } from 'moment';
 
 @Injectable()
 export class ScheduleService {
   private logger = new Logger(ScheduleService.name);
   constructor(
     @InjectModel(Schedule.name) private scheduleModel: Model<Schedule>,
+    @InjectModel(Azan.name) private azanModel: Model<Azan>,
     @InjectModel(Conductor.name) private conductorModel: Model<Conductor>,
     @Inject(forwardRef(() => FileService)) private fileService: FileService,
     @Inject(forwardRef(() => DeviceService)) private deviceService: DeviceService,
@@ -164,6 +167,22 @@ export class ScheduleService {
       conductor,
       ...rest,
     });
+  }
+
+  async createAzanSchedule(date: Moment, start: string, type: AzanTypeEnum) {
+    const [hour, minute, second] = start.split(':');
+    // to override existing azans for that day
+    await this.azanModel.findOneAndUpdate(
+      {
+        date: date.toDate(),
+        type,
+      },
+      {
+        start: date.minute(Number(minute)).hour(Number(hour)).second(Number(second)).toDate(),
+        createdAt: new Date(),
+      },
+      { upsert: true, new: true },
+    );
   }
   async getOperatorsSchedules(operator: string): Promise<Schedule[]> {
     return this.scheduleModel.find({ operator }).populate('deviceId').lean();

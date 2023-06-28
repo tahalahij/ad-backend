@@ -77,6 +77,26 @@ export class ScheduleController {
   }
 
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'App gets azan schedule timestamp' })
+  @ApiResponse({ status: 200 })
+  @Get('azan-time')
+  async getAzanTime(@Res({ passthrough: true }) res: Response, @RealIP() deviceIp: string): Promise<File> {
+    const data = await this.scheduleService.getSchedule(deviceIp);
+    return data?.file;
+  }
+
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'App gets azan schedule' })
+  @ApiResponse({ status: 200 })
+  @Get('azan')
+  async getAzan(@Res({ passthrough: true }) res: Response, @RealIP() deviceIp: string): Promise<File> {
+    const data = await this.scheduleService.getSchedule(deviceIp);
+    return data?.file;
+  }
+
+
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Operator removes schedule' })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.OPERATOR]))
   @Delete('/:id')
