@@ -11,6 +11,7 @@ import { RolesType } from '../auth/role.type';
 import { File } from '../file/file.schema';
 import { GetSchedulesByAdminDto } from './dtos/get-schedules-by-admin.dto';
 import { OperatorIdQueryDto } from './dtos/operator.id.query.dto';
+import { Azan } from './azan.schema';
 
 @ApiTags('schedule')
 @Controller('schedule')
@@ -77,14 +78,12 @@ export class ScheduleController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'App gets azan schedule timestamp' })
+  @ApiOperation({ summary: 'App gets todays azan timestamps' })
   @ApiResponse({ status: 200 })
   @Get('azan-time')
-  async getAzanTime(@Res({ passthrough: true }) res: Response, @RealIP() deviceIp: string): Promise<File> {
-    const data = await this.scheduleService.getSchedule(deviceIp);
-    return data?.file;
+  async getAzanTime(@Res({ passthrough: true }) res: Response, @RealIP() deviceIp: string): Promise<Azan[]> {
+    return this.scheduleService.getAzanTimestamps();
   }
-
 
   @ApiBearerAuth()
   @ApiOperation({ summary: 'App gets azan schedule' })
@@ -94,7 +93,6 @@ export class ScheduleController {
     const data = await this.scheduleService.getSchedule(deviceIp);
     return data?.file;
   }
-
 
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Operator removes schedule' })

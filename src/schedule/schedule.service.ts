@@ -169,16 +169,17 @@ export class ScheduleService {
     });
   }
 
-  async createAzanSchedule(date: Moment, start: string, type: AzanTypeEnum) {
+  async createAzanSchedule(date: string, start: string, type: AzanTypeEnum) {
     const [hour, minute, second] = start.split(':');
     // to override existing azans for that day
+
     await this.azanModel.findOneAndUpdate(
       {
-        date: date.toDate(),
+        date,
         type,
       },
       {
-        start: date.minute(Number(minute)).hour(Number(hour)).second(Number(second)).toDate(),
+        start: moment(date, 'YYYY-MM-DD').minute(Number(minute)).hour(Number(hour)).second(Number(second)).toDate(),
         createdAt: new Date(),
       },
       { upsert: true, new: true },
@@ -197,6 +198,15 @@ export class ScheduleService {
       throw new NotFoundException('برنامه مروبط به این اپراتور پیدا نشد');
     }
     return exists.remove();
+  }
+
+  async getAzanTimestamps(): Promise<Azan[]> {
+    const date = moment().format('YYYY/MM/DD');
+    console.log({ date });
+    return this.azanModel.find({
+      date,
+      start: { $gte: new Date() },
+    });
   }
   async adminDelete(id: string): Promise<Schedule> {
     const exists = await this.scheduleModel.findOne({ _id: id });

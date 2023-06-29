@@ -9,8 +9,8 @@ export class Azan {
   @Prop({ type: Date })
   start: mongoose.Schema.Types.Date; // start of azan
 
-  @Prop({ type: Date })
-  date: mongoose.Schema.Types.Date; // start of day
+  @Prop({ type: String })
+  date: string; // start of day  ('YYYY-MM-DD')
 
   @Prop({ type: String, enum: AzanTypeEnum })
   type: AzanTypeEnum;

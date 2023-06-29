@@ -66,11 +66,9 @@ export class FileService {
         return { date: d['تاریخ میلادی'], noon: d['اذان ظهر'], vesper: d['اذان مغرب'], sunrise: d['اذان صبح'] };
       });
       timeAndDates.forEach((i) => {
-        const date = moment(i.date, 'YYYY-MM-DD');
-
-        this.scheduleService.createAzanSchedule(date, i.sunrise, AzanTypeEnum.SUNRISE);
-        this.scheduleService.createAzanSchedule(date, i.noon, AzanTypeEnum.NOON);
-        this.scheduleService.createAzanSchedule(date, i.vesper, AzanTypeEnum.VESPER);
+        this.scheduleService.createAzanSchedule(i.date, i.sunrise, AzanTypeEnum.SUNRISE);
+        this.scheduleService.createAzanSchedule(i.date, i.noon, AzanTypeEnum.NOON);
+        this.scheduleService.createAzanSchedule(i.date, i.vesper, AzanTypeEnum.VESPER);
       });
     });
 
