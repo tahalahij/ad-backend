@@ -14,7 +14,8 @@ import { isDefined } from 'class-validator';
 import { GetSchedulesByAdminDto } from './dtos/get-schedules-by-admin.dto';
 import { Azan } from './azan.schema';
 import { AzanTypeEnum } from './enums/azan.type.enum';
-import { Moment } from 'moment';
+import { SystemSettingService } from '../system-settings/system-setting.service';
+import { SystemSettingsEnum } from '../system-settings/enum/system-settings.enum';
 
 @Injectable()
 export class ScheduleService {
@@ -26,6 +27,7 @@ export class ScheduleService {
     @Inject(forwardRef(() => FileService)) private fileService: FileService,
     @Inject(forwardRef(() => DeviceService)) private deviceService: DeviceService,
     @Inject(forwardRef(() => StatisticsService)) private statisticsService: StatisticsService,
+    @Inject(forwardRef(() => SystemSettingService)) private systemSettingService: SystemSettingService,
   ) {}
 
   async getSchedules(query: GetSchedulesByAdminDto): Promise<Schedule[]> {
@@ -200,13 +202,18 @@ export class ScheduleService {
     return exists.remove();
   }
 
-  async getAzanTimestamps(): Promise<Azan[]> {
+  async getAzanTimestamps(): Promise<{ azans: Azan[]; azanDurationInSec: number }> {
     const date = moment().format('YYYY/MM/DD');
     console.log({ date });
-    return this.azanModel.find({
+    const azans = await this.azanModel.find({
       date,
       start: { $gte: new Date() },
     });
+    const azanDurationInSec = await this.systemSettingService.getSystemSetting(SystemSettingsEnum.AZAN_DURATION);
+    return {
+      azans,
+      azanDurationInSec: Number(azanDurationInSec?.value || 120),
+    };
   }
   async adminDelete(id: string): Promise<Schedule> {
     const exists = await this.scheduleModel.findOne({ _id: id });

@@ -78,10 +78,13 @@ export class ScheduleController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'App gets todays azan timestamps' })
+  @ApiOperation({ summary: 'App gets todays azan timestamps, and duration' })
   @ApiResponse({ status: 200 })
   @Get('azan-time')
-  async getAzanTime(@Res({ passthrough: true }) res: Response, @RealIP() deviceIp: string): Promise<Azan[]> {
+  async getAzanTime(
+    @Res({ passthrough: true }) res: Response,
+    @RealIP() deviceIp: string,
+  ): Promise<{ azans: Azan[]; azanDurationInSec: number }> {
     return this.scheduleService.getAzanTimestamps();
   }
 

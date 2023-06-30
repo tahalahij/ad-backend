@@ -10,12 +10,14 @@ import { StatisticsModule } from '../statistics/statistics.module';
 import { ConductorService } from './conductor.service';
 import { ConductorController } from './conductor.controller';
 import { Azan, AzanSchema } from './azan.schema';
+import { SystemSettingModule } from '../system-settings/system-setting.module';
 
 @Module({
   imports: [
     forwardRef(() => FileModule),
     forwardRef(() => DeviceModule),
     forwardRef(() => StatisticsModule),
+    forwardRef(() => SystemSettingModule),
     MongooseModule.forFeature([
       { name: Conductor.name, schema: ConductorSchema },
       { name: Schedule.name, schema: ScheduleSchema },
