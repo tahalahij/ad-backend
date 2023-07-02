@@ -55,9 +55,9 @@ export class FileController {
   private logger = new Logger(FileController.name);
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Admin gets files' })
+  @ApiOperation({ summary: 'Admin or controller gets files' })
   @ApiResponse({ status: 200, type: File })
-  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN, RolesType.CONTROLLER]))
   @Get('/')
   async adminGetFiles(
     @UserId() operatorId: mongoose.Types.ObjectId,

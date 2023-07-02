@@ -25,6 +25,16 @@ export class UserController {
     return this.userService.getOperators();
   }
 
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Admin gets all controllers' })
+  @ApiResponse({ status: 200, type: User })
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
+  @Get('/admin/controllers')
+  async getControllers(): Promise<UserDocument[]> {
+    return this.userService.getControllers();
+  }
+
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin creates a operator or controller' })
   @ApiResponse({ status: 200, type: User })

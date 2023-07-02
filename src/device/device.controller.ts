@@ -19,9 +19,9 @@ export class DeviceController {
   constructor(private deviceService: DeviceService) {}
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Admin gets all devices' })
+  @ApiOperation({ summary: 'Admin or controller gets all devices' })
   @ApiResponse({ status: 200, type: Device })
-  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN, RolesType.CONTROLLER]))
   @Get('/admin')
   async getDevices(@Query() queryDto: GetDevicesQueryDto): Promise<DeviceDocument[]> {
     return this.deviceService.getDevices(queryDto);

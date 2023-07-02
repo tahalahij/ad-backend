@@ -23,6 +23,10 @@ export class UserService {
   public async getOperators(): Promise<UserDocument[]> {
     return this.userModel.find({ role: RolesType.OPERATOR }).lean();
   }
+
+  public async getControllers(): Promise<UserDocument[]> {
+    return this.userModel.find({ role: RolesType.CONTROLLER }).lean();
+  }
   public async getOperatorById(id: string): Promise<UserDocument> {
     return this.userModel.findById(id);
   }
