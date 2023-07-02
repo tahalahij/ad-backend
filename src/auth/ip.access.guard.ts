@@ -2,6 +2,7 @@ import { CanActivate, ExecutionContext, ForbiddenException, Inject, Injectable, 
 import { parse } from 'path';
 import { DeviceService } from '../device/device.service';
 import { RolesType } from './role.type';
+import { handleIPV6 } from '../utils/helper';
 
 @Injectable()
 export class IpAccessCheckGuard implements CanActivate {
@@ -10,10 +11,7 @@ export class IpAccessCheckGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
 
-    let requestIp = request.ip;
-    if (requestIp.slice(0, 7) == '::ffff:') {
-      requestIp = requestIp.slice(7, requestIp.length);
-    }
+    const requestIp = handleIPV6(request.ip);
     this.logger.log('in IpAccessCheckGuard', { requestIp });
     const { fileName } = request.params;
 

@@ -14,6 +14,8 @@ import { isDefined } from 'class-validator';
 import { GetSchedulesByAdminDto } from './dtos/get-schedules-by-admin.dto';
 import { Azan } from './azan.schema';
 import { AzanTypeEnum } from './enums/azan.type.enum';
+import { Moment } from 'moment';
+import { handleIPV6 } from 'src/utils/helper';
 import { SystemSettingService } from '../system-settings/system-setting.service';
 import { SystemSettingsEnum } from '../system-settings/enum/system-settings.enum';
 
@@ -82,9 +84,7 @@ export class ScheduleService {
 
   async getSchedule(ip: string): Promise<{ schedule: Schedule; file: File }> {
     this.logger.log('in getSchedule ', { ip });
-    if (ip.slice(0, 7) == '::ffff:') {
-      ip = ip.slice(7, ip.length);
-    }
+    ip = handleIPV6(ip);
     const schedule = await this.getCurrentSchedule(ip);
 
     this.logger.log('getSchedule ', { schedule, ip });
