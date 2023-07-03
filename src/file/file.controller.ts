@@ -168,6 +168,7 @@ export class FileController {
     return 'عکس داشبورد با موفقیت اپدیت شد';
   }
 
+  @ApiOperation({ summary: 'return the type of azan file in the Content-Type header' })
   @Head('download/azan')
   getAzanType(@Response() res: express.Response): express.Response {
     const type = this.fileService.getAzanType();
