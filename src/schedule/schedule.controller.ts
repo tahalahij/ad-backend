@@ -81,20 +81,8 @@ export class ScheduleController {
   @ApiOperation({ summary: 'App gets todays azan timestamps, and duration' })
   @ApiResponse({ status: 200 })
   @Get('azan-time')
-  async getAzanTime(
-    @Res({ passthrough: true }) res: Response,
-    @RealIP() deviceIp: string,
-  ): Promise<{ azans: Azan[]; azanDurationInSec: number }> {
+  async getAzanTime(): Promise<{ azans: Azan[]; azanDurationInSec: number }> {
     return this.scheduleService.getAzanTimestamps();
-  }
-
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'App gets azan schedule' })
-  @ApiResponse({ status: 200 })
-  @Get('azan')
-  async getAzan(@Res({ passthrough: true }) res: Response, @RealIP() deviceIp: string): Promise<File> {
-    const data = await this.scheduleService.getSchedule(deviceIp);
-    return data?.file;
   }
 
   @ApiBearerAuth()
