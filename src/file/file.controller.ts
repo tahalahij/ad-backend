@@ -5,6 +5,7 @@ import {
   Logger,
   Param,
   Post,
+  Head,
   Query,
   Res,
   StreamableFile,
@@ -14,14 +15,13 @@ import {
   UseInterceptors,
   Delete,
   UploadedFiles,
-  ParseFilePipe,
-  FileTypeValidator,
 } from '@nestjs/common';
 import { FileService } from './file.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { UserId } from '../auth/user.id.decorator';
 import { File } from './file.schema';
 import mongoose from 'mongoose';
+import express from 'express';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
@@ -165,7 +165,17 @@ export class FileController {
     }),
   )
   async adminUploadDashboardPic(@UploadedFile() file: Express.Multer.File, @UserId() adminId: string) {
-    return 'uploaded';
+    return 'عکس داشبورد با موفقیت اپدیت شد';
+  }
+
+  @Head('download/azan')
+  getAzanType(@Response() res: express.Response): express.Response {
+    const type = this.fileService.getAzanType();
+    console.log({
+      azanType: type,
+    });
+    res.set({ 'Content-Type': type });
+    return res.end();
   }
 
   @Get('download/azan')

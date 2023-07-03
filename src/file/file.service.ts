@@ -22,7 +22,6 @@ import * as XLSX from 'xlsx';
 import { SystemSettingService } from '../system-settings/system-setting.service';
 import { SystemSettingsEnum } from '../system-settings/enum/system-settings.enum';
 import { ScheduleService } from '../schedule/schedule.service';
-import * as moment from 'moment';
 import { getAudioDurationInSeconds } from 'get-audio-duration';
 import { AzanTypeEnum } from '../schedule/enums/azan.type.enum';
 import * as NodeBuffer from 'node:buffer';
@@ -103,7 +102,8 @@ export class FileService {
       const vidDuration = buffer.readUInt32BE(start + 4);
 
       duration = Math.floor((vidDuration / timeScale) * 1000) / 1000;
-      // duration = await getVideoDurationInSeconds(dir + file.filename);
+    } else {
+      throw new BadRequestException(' فرمت فایل ارسالی پذیرفته نمیشود: تنها فایلهای mp3, mp4');
     }
     await this.systemSettingService.upsertSystemSetting(SystemSettingsEnum.AZAN_DURATION, duration);
   }
@@ -135,6 +135,14 @@ export class FileService {
     return { message: 'file removed from conductors as well' };
   }
 
+  getAzanType(): string {
+    const azanDir = join(process.cwd(), '/files/azan/');
+    const fileNames = fs.readdirSync(azanDir);
+    if (!fileNames.length) {
+      throw new BadRequestException('فایل اذان اپلود نشده است');
+    }
+    return lookup(fileNames[0]);
+  }
   fileBuffer(fileName: string): Buffer.Buffer {
     return readFileSync(join(process.cwd(), `/files/${fileName}`));
   }
@@ -145,7 +153,6 @@ export class FileService {
     if (!fileNames.length) {
       throw new BadRequestException('فایل اذان اپلود نشده است');
     }
-    console.log({ fileNames });
     const stream = createReadStream(join(azanDir, fileNames[0]));
     return new StreamableFile(stream);
   }
