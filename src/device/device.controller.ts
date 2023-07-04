@@ -58,7 +58,7 @@ export class DeviceController {
   @ApiOperation({ summary: 'get device by id' })
   @ApiResponse({ status: 200, type: Device })
   @Get('/:id')
-  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN, RolesType.OPERATOR]))
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN, RolesType.OPERATOR, RolesType.CONTROLLER]))
   async getDevice(@Param('id') id: string): Promise<DeviceDocument> {
     return this.deviceService.getDevice({ _id: id });
   }

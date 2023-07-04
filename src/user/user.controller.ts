@@ -25,7 +25,6 @@ export class UserController {
     return this.userService.getOperators();
   }
 
-
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin gets all controllers' })
   @ApiResponse({ status: 200, type: User })
