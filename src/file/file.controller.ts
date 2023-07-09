@@ -54,12 +54,13 @@ export class FileController {
   constructor(private fileService: FileService) {}
   private logger = new Logger(FileController.name);
 
+
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Admin or controller gets files' })
+  @ApiOperation({ summary: 'Operator gets its files' })
   @ApiResponse({ status: 200, type: File })
-  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN, RolesType.CONTROLLER]))
-  @Get('/')
-  async adminGetFiles(
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.OPERATOR]))
+  @Get('operator/')
+  async getFiles(
     @UserId() operatorId: mongoose.Types.ObjectId,
     @Query() queryDto: PaginationQueryDto,
   ): Promise<File[]> {
@@ -67,11 +68,11 @@ export class FileController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Operator gets its files' })
+  @ApiOperation({ summary: 'Admin or controller gets files' })
   @ApiResponse({ status: 200, type: File })
-  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.OPERATOR]))
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN, RolesType.CONTROLLER]))
   @Get('/')
-  async getFiles(
+  async adminGetFiles(
     @UserId() operatorId: mongoose.Types.ObjectId,
     @Query() queryDto: PaginationQueryDto,
   ): Promise<File[]> {
