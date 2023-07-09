@@ -118,7 +118,7 @@ export class FileController {
     Array<Express.Multer.File>,
   ) {
     await this.fileService.uploadAzanXlsx(files);
-    return 'فایل ها با موفقیت اضافه شدند';
+    return { message: 'فایل ها با موفقیت اضافه شدند' };
   }
 
   @ApiBearerAuth()
@@ -139,7 +139,7 @@ export class FileController {
   async uploadAzanFile(@UploadedFile() file: Express.Multer.File) {
     this.logger.log('upload file:', { file });
     await this.fileService.uploadAzanFile(file);
-    return 'فایل اذان با موفقیت اپدیت شد';
+    return { message: 'فایل اذان با موفقیت اپدیت شد' };
   }
 
   @ApiBearerAuth()
@@ -165,7 +165,7 @@ export class FileController {
     }),
   )
   async adminUploadDashboardPic(@UploadedFile() file: Express.Multer.File, @UserId() adminId: string) {
-    return 'عکس داشبورد با موفقیت اپدیت شد';
+    return { message: 'عکس داشبورد با موفقیت اپدیت شد' };
   }
 
   @ApiOperation({ summary: 'return the type of azan file in the Content-Type header' })
