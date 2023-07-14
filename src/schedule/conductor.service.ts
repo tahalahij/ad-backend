@@ -48,4 +48,11 @@ export class ConductorService {
     }
     return exists.remove();
   }
+  async adminDelete(id: string): Promise<Conductor> {
+    const exists = await this.conductorModel.findOne({ _id: id });
+    if (!exists) {
+      throw new NotFoundException('کنداکتور وجود ندارد');
+    }
+    return exists.remove();
+  }
 }

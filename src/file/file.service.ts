@@ -134,6 +134,18 @@ export class FileService {
     await file.remove();
     return { message: 'file removed from conductors as well' };
   }
+  async adminDeleteFile(fileId: string): Promise<{ message: string }> {
+    const file = await this.fileModel.findOne({ _id: fileId });
+    if (!file) {
+      throw new NotFoundException('فایل پیدا نشد');
+    }
+    fs.unlink(join(process.cwd(), file.path), (param) => {
+      this.logger.log('remove file', { param });
+    });
+    await this.conductorService.removeFileFromConductors(file._id);
+    await file.remove();
+    return { message: 'file removed from conductors as well' };
+  }
 
   getAzanType(): string {
     const azanDir = join(process.cwd(), '/files/azan/');

@@ -49,6 +49,15 @@ export class ConductorController {
   }
 
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'Admin or controller removes conductor' })
+  @ApiResponse({ status: 200 })
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN, RolesType.CONTROLLER]))
+  @Delete('/:id')
+  async adminDelConductor(@Param('id') id: string): Promise<Conductor> {
+    return this.conductorService.adminDelete(id);
+  }
+
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin or Controller gets conductors' })
   @ApiResponse({ status: 200, type: Conductor })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN, RolesType.CONTROLLER]))

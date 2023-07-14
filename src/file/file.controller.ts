@@ -54,7 +54,6 @@ export class FileController {
   constructor(private fileService: FileService) {}
   private logger = new Logger(FileController.name);
 
-
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Operator gets its files' })
   @ApiResponse({ status: 200, type: File })
@@ -150,6 +149,15 @@ export class FileController {
   @Delete('/:fileId')
   async delete(@Param('fileId') fileId: string, @UserId() adminId: string) {
     return this.fileService.deleteFile(adminId, fileId);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Admin and controller delete file by id' })
+  @ApiResponse({ status: 200 })
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN, RolesType.CONTROLLER]))
+  @Delete('admin/:fileId')
+  async adminDeleteFile(@Param('fileId') fileId: string) {
+    return this.fileService.adminDeleteFile(fileId);
   }
 
   @ApiBearerAuth()

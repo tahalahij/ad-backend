@@ -94,8 +94,8 @@ export class ScheduleController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Admin removes schedule' })
-  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
+  @ApiOperation({ summary: 'Admin or controller removes schedule' })
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN, RolesType.CONTROLLER]))
   @Delete('admin/:id')
   async adminDelSchedule(@Param('id') id: string): Promise<Schedule> {
     return this.scheduleService.adminDelete(id);
