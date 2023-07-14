@@ -40,13 +40,13 @@ export class ScheduleService {
       where.operator = query.operator;
     }
     if (query.deviceId) {
-      where.deviceId = query.deviceId;
+      where.device = query.deviceId;
     }
     return this.scheduleModel
       .find(where)
       .skip(limit * page)
       .limit(limit)
-      .populate('operator', 'conductor', 'deviceId')
+      .populate('operator', 'conductor', 'device')
       .lean();
   }
   async getCurrentSchedule(ip: string): Promise<Schedule> {
@@ -64,6 +64,8 @@ export class ScheduleService {
       // one time has higher priority
       return oneTime;
     }
+
+    this.logger.log('in getCurrentSchedule recursive, filter', { hour, day, ip });
     const recursive: Schedule[] = await this.scheduleModel
       .find({ ip, day, type: ScheduleTypeEnum.RECURSIVE })
       .lte('from.hour', hour)
@@ -124,7 +126,7 @@ export class ScheduleService {
     }
     if (rest.type === ScheduleTypeEnum.RECURSIVE) {
       const recursives = await this.scheduleModel
-        .find({ type: ScheduleTypeEnum.RECURSIVE, deviceId: device.id, operator })
+        .find({ type: ScheduleTypeEnum.RECURSIVE, device: device.id, operator })
         .lean();
       recursives.forEach((r) => {
         const intersectDays = r.day.filter((day) => rest.day.includes(day));
@@ -145,7 +147,7 @@ export class ScheduleService {
       // one time
       const oneTimes = await this.scheduleModel.find({
         type: ScheduleTypeEnum.ONE_TIME,
-        deviceId: device.id,
+        device: device.id,
         operator,
       });
       oneTimes.forEach((ot: any) => {
@@ -162,7 +164,7 @@ export class ScheduleService {
     }
     //
     return this.scheduleModel.create({
-      deviceId: deviceId,
+      device: deviceId,
       operator,
       ip: device.ip,
       createdAt: new Date(),
@@ -188,7 +190,7 @@ export class ScheduleService {
     );
   }
   async getOperatorsSchedules(operator: string): Promise<Schedule[]> {
-    return this.scheduleModel.find({ operator }).populate('deviceId').lean();
+    return this.scheduleModel.find({ operator }).populate('device').lean();
   }
   async getScheduleById(operator: string, id: string): Promise<Schedule> {
     return this.scheduleModel.findOne({ operator, _id: id });

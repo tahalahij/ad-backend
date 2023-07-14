@@ -22,7 +22,7 @@ export class Schedule {
   conductor: mongoose.Schema.Types.ObjectId;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Device', required: true })
-  deviceId: mongoose.Types.ObjectId;
+  device: mongoose.Types.ObjectId;
 
   @Prop({ type: String, required: true })
   name: string; // name of schedule

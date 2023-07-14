@@ -9,6 +9,7 @@ import { RoleAccessCheck } from '../auth/role.access.guard';
 import { RolesType } from '../auth/role.type';
 import mongoose from 'mongoose';
 import { PaginationQueryDto } from './dtos/pagination.dto';
+import { GetConductorsByAdminDto } from './dtos/get-conductors-by-admin.dto';
 
 @ApiTags('conductors')
 @Controller('conductors')
@@ -43,11 +44,17 @@ export class ConductorController {
   @ApiResponse({ status: 200 })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.OPERATOR]))
   @Delete('/:id')
-  async delConductor(
-    @Param('id') id: string,
-    @UserId() adminId: string,
-  ): Promise<Conductor> {
+  async delConductor(@Param('id') id: string, @UserId() adminId: string): Promise<Conductor> {
     return this.conductorService.delete(adminId, id);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Admin or Controller gets conductors' })
+  @ApiResponse({ status: 200, type: Conductor })
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN, RolesType.CONTROLLER]))
+  @Get('/admin')
+  async getConductors(@Query() query: GetConductorsByAdminDto): Promise<Conductor[]> {
+    return this.conductorService.getOperatorsConductors(query);
   }
 
   @ApiBearerAuth()
@@ -55,10 +62,7 @@ export class ConductorController {
   @ApiResponse({ status: 200, type: Conductor })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.OPERATOR]))
   @Get('/')
-  async getFiles(
-    @UserId() operator: mongoose.Types.ObjectId,
-    @Query() queryDto: PaginationQueryDto,
-  ): Promise<Conductor[]> {
-    return this.conductorService.getOperatorsConductors(operator, queryDto);
+  async getFiles(@UserId() operator: string, @Query() queryDto: PaginationQueryDto): Promise<Conductor[]> {
+    return this.conductorService.getOperatorsConductors({ operator, ...queryDto });
   }
 }

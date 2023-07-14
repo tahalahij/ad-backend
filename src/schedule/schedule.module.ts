@@ -11,6 +11,7 @@ import { ConductorService } from './conductor.service';
 import { ConductorController } from './conductor.controller';
 import { Azan, AzanSchema } from './azan.schema';
 import { SystemSettingModule } from '../system-settings/system-setting.module';
+import { Device, DeviceSchema } from '../device/device.schema';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { SystemSettingModule } from '../system-settings/system-setting.module';
       { name: Conductor.name, schema: ConductorSchema },
       { name: Schedule.name, schema: ScheduleSchema },
       { name: Azan.name, schema: AzanSchema },
+      { name: Device.name, schema: DeviceSchema },
     ]),
   ],
   providers: [ScheduleService, ConductorService],

@@ -2,21 +2,24 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { Conductor } from './conductor.schema';
-import { PaginationQueryDto } from './dtos/pagination.dto';
 import { ConductorBodyDto } from './dtos/conductor.body.dto';
+import { GetConductorsByAdminDto } from './dtos/get-conductors-by-admin.dto';
 
 @Injectable()
 export class ConductorService {
   private logger = new Logger(ConductorService.name);
   constructor(@InjectModel(Conductor.name) private conductorModel: Model<Conductor>) {}
 
-  async getOperatorsConductors(operator: mongoose.Types.ObjectId, query: PaginationQueryDto): Promise<Conductor[]> {
-    const limit = query.limit || 10;
-    const page = query.page || 0;
+  async getOperatorsConductors(query: GetConductorsByAdminDto): Promise<Conductor[]> {
+    const { operator, ...rest } = query;
+    const limit = rest.limit || 10;
+    const page = rest.page || 0;
+    const filter: any = {};
+    if (operator) {
+      filter.operator = operator;
+    }
     return this.conductorModel
-      .find({
-        operator,
-      })
+      .find(filter)
       .skip(limit * page)
       .limit(limit)
       .lean();
