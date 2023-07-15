@@ -46,7 +46,9 @@ export class ScheduleService {
       .find(where)
       .skip(limit * page)
       .limit(limit)
-      .populate('operator', 'conductor', 'device')
+      .populate('operator')
+      .populate('conductor')
+      .populate('device')
       .lean();
   }
   async getCurrentSchedule(ip: string): Promise<Schedule> {
