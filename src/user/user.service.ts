@@ -55,16 +55,22 @@ export class UserService {
   }
 
   async updateUser(id: string, updateObj: UpdateUserDto): Promise<User> {
-    if (updateObj.username) {
+    const user = await this.userModel.findById(id);
+    if (updateObj.username && user.username !== updateObj.username) {
       const exists = await this.userModel.exists({ username: updateObj.username });
       if (!exists) {
-        throw new BadRequestException('اپراتور با این نام وجود دارد');
+        throw new BadRequestException('اپراتور با این نام کاربری وجود دارد');
       }
     }
     if (updateObj.password) {
       updateObj.password = await this.CryptoService.hashPassword(updateObj.password);
     }
-    return this.userModel.findByIdAndUpdate(id, updateObj);
+    user.set({
+      ip: updateObj.ip,
+      mac: updateObj.mac,
+      name: updateObj.name,
+    });
+    return user.save();
   }
 
   async seedAdmin() {
