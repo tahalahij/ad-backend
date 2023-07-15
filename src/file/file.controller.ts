@@ -31,6 +31,7 @@ import { RoleAccessCheck } from '../auth/role.access.guard';
 import { RolesType } from '../auth/role.type';
 import { IpAccessCheckGuard } from '../auth/ip.access.guard';
 import { PaginationQueryDto } from '../schedule/dtos/pagination.dto';
+import { GetFilesByAdminDto } from './dtos/get-files-by-admin.dto';
 
 function editFileName(req, file, callback) {
   const name = file.originalname.split('.')[0];
@@ -53,30 +54,6 @@ function adminDashboardPic(req, file, callback) {
 export class FileController {
   constructor(private fileService: FileService) {}
   private logger = new Logger(FileController.name);
-
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Operator gets its files' })
-  @ApiResponse({ status: 200, type: File })
-  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.OPERATOR]))
-  @Get('operator/')
-  async getFiles(
-    @UserId() operatorId: mongoose.Types.ObjectId,
-    @Query() queryDto: PaginationQueryDto,
-  ): Promise<File[]> {
-    return this.fileService.getFiles(operatorId, queryDto);
-  }
-
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Admin or controller gets files' })
-  @ApiResponse({ status: 200, type: File })
-  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN, RolesType.CONTROLLER]))
-  @Get('/')
-  async adminGetFiles(
-    @UserId() operatorId: mongoose.Types.ObjectId,
-    @Query() queryDto: PaginationQueryDto,
-  ): Promise<File[]> {
-    return this.fileService.getFiles(operatorId, queryDto);
-  }
 
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Operator upload its file' })
@@ -236,5 +213,26 @@ export class FileController {
       token,
     });
     return this.fileService.fileStream(fileName);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Operator gets its files' })
+  @ApiResponse({ status: 200, type: File })
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.OPERATOR]))
+  @Get('operator/')
+  async getFiles(
+    @UserId() operatorId: mongoose.Types.ObjectId,
+    @Query() queryDto: PaginationQueryDto,
+  ): Promise<File[]> {
+    return this.fileService.getFiles(operatorId, queryDto);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Admin or controller gets files' })
+  @ApiResponse({ status: 200, type: File })
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN, RolesType.CONTROLLER]))
+  @Get('/')
+  async adminGetFiles(@Query() queryDto: GetFilesByAdminDto): Promise<File[]> {
+    return this.fileService.getFilesByAdmin(queryDto);
   }
 }

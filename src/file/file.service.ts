@@ -25,6 +25,7 @@ import { ScheduleService } from '../schedule/schedule.service';
 import { getAudioDurationInSeconds } from 'get-audio-duration';
 import { AzanTypeEnum } from '../schedule/enums/azan.type.enum';
 import * as NodeBuffer from 'node:buffer';
+import { GetFilesByAdminDto } from './dtos/get-files-by-admin.dto';
 
 @Injectable()
 export class FileService {
@@ -114,6 +115,20 @@ export class FileService {
       .find({
         ownerId,
       })
+      .skip(limit * page)
+      .limit(limit)
+      .lean();
+  }
+
+  async getFilesByAdmin(query: GetFilesByAdminDto): Promise<File[]> {
+    const filter: any = {};
+    if (query.operator) {
+      filter.ownerId = query.operator;
+    }
+    const limit = query.limit || 10;
+    const page = query.page || 0;
+    return this.fileModel
+      .find(filter)
       .skip(limit * page)
       .limit(limit)
       .lean();
