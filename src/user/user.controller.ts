@@ -17,9 +17,9 @@ export class UserController {
   constructor(private userService: UserService) {}
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Admin gets all users' })
+  @ApiOperation({ summary: 'Admin or controller gets all users' })
   @ApiResponse({ status: 200, type: User })
-  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN, RolesType.CONTROLLER]))
   @Get('/admin/operators')
   async getOperators(): Promise<UserDocument[]> {
     return this.userService.getOperators();
