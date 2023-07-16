@@ -42,7 +42,7 @@ export class ScheduleService {
     if (query.deviceId) {
       where.device = query.deviceId;
     }
-    return this.scheduleModel
+    const schedules: Schedule[] = await this.scheduleModel
       .find(where)
       .skip(limit * page)
       .limit(limit)
@@ -50,6 +50,7 @@ export class ScheduleService {
       .populate('conductor')
       .populate('device')
       .lean();
+    return schedules;
   }
   async getCurrentSchedule(ip: string): Promise<Schedule> {
     const now = moment();

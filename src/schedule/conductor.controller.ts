@@ -10,6 +10,7 @@ import { RolesType } from '../auth/role.type';
 import mongoose from 'mongoose';
 import { PaginationQueryDto } from './dtos/pagination.dto';
 import { GetConductorsByAdminDto } from './dtos/get-conductors-by-admin.dto';
+import { AdminCreateConductorBodyDto } from './dtos/admin.create.conductor.body.dto';
 
 @ApiTags('conductors')
 @Controller('conductors')
@@ -23,6 +24,17 @@ export class ConductorController {
   @Post('')
   async createConductor(@UserId() adminId: string, @Body() conductorBody: ConductorBodyDto): Promise<Conductor> {
     const conductor = await this.conductorService.create(adminId, conductorBody);
+    return conductor;
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Admin creates conductor' })
+  @ApiResponse({ status: 200 })
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
+  @Post('admin')
+  async adminCreateConductor(@Body() conductorBody: AdminCreateConductorBodyDto): Promise<Conductor> {
+    const { operatorId, ...rest } = conductorBody;
+    const conductor = await this.conductorService.create(operatorId, rest);
     return conductor;
   }
 

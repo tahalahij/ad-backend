@@ -62,7 +62,7 @@ export class UserController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Admin updates a operator' })
+  @ApiOperation({ summary: 'Admin updates a operator or controller' })
   @ApiResponse({ status: 200, type: User })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
   @Patch('/admin/:id')
