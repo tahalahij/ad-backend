@@ -43,6 +43,16 @@ function editFileName(req, file, callback) {
   callback(null, newName);
 }
 
+function editFileNameForAdmin(req, file, callback) {
+  const name = file.originalname.split('.')[0];
+  const userId = req.params.operatorId;
+  const extension = extname(file.originalname);
+  const newName = `${new Date().getTime()}-${name}-${userId}${extension}`;
+  console.log({ newName });
+
+  callback(null, newName);
+}
+
 function adminDashboardPic(req, file, callback) {
   const extension = extname(file.originalname);
   const newName = `dashboard${extension}`;
@@ -68,9 +78,26 @@ export class FileController {
       }),
     }),
   )
-  async upload(@UploadedFile() file: Express.Multer.File, @Body() uploadBody: UploadDto, @UserId() adminId: string) {
-    this.logger.log('upload file:', { file, adminId, uploadBody });
-    const createdFile = await this.fileService.createFile(adminId, file, uploadBody);
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'admin upload file on behalf of operator' })
+  @ApiResponse({ status: 200 })
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
+  @Post('admin/:operatorId/upload')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './files',
+        filename: editFileNameForAdmin,
+      }),
+    }),
+  )
+  async uploadByAdmin(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() uploadBody: UploadDto,
+    @Param('operatorId') operatorId: string,
+  ) {
+    this.logger.log('upload file:', { file, operatorId, uploadBody });
+    const createdFile = await this.fileService.createFile(operatorId, file, uploadBody);
     return { fileName: file.filename, id: createdFile._id };
   }
 
