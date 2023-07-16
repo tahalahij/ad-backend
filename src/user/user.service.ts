@@ -56,8 +56,8 @@ export class UserService {
 
   async updateUser(id: string, updateObj: UpdateUserDto): Promise<User> {
     const user = await this.userModel.findById(id);
-    if (updateObj.username && user.username !== updateObj.username) {
-      const exists = await this.userModel.exists({ username: updateObj.username });
+    if (updateObj.username) {
+      const exists = await this.userModel.exists({ username: updateObj.username, id: { $ne: id } });
       if (!exists) {
         throw new BadRequestException('اپراتور با این نام کاربری وجود دارد');
       }
