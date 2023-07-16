@@ -78,6 +78,16 @@ export class FileController {
       }),
     }),
   )
+  async uploadByOperator(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() uploadBody: UploadDto,
+    @UserId() operatorId: string,
+  ) {
+    this.logger.log('upload file:', { file, operatorId, uploadBody });
+    const createdFile = await this.fileService.createFile(operatorId, file, uploadBody);
+    return { fileName: file.filename, id: createdFile._id };
+  }
+
   @ApiBearerAuth()
   @ApiOperation({ summary: 'admin upload file on behalf of operator' })
   @ApiResponse({ status: 200 })
