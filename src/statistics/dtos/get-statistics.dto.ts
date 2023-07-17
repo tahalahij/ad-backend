@@ -13,7 +13,7 @@ export class GetStatisticsDto extends PaginationQueryDto {
   @IsString()
   fileId?: string;
 
-  @ApiPropertyOptional({ example: 'image', description: 'typeof file' })
+  @ApiPropertyOptional({ example: 'image', description: 'typeof file can be one of image - video - audio' })
   @IsOptional()
   @IsString()
   fileType?: string;
