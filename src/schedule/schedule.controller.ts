@@ -35,10 +35,10 @@ export class ScheduleController {
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
   @Post('admin/:operatorId')
   async adminCreateSchedule(
-    @Query() query: OperatorIdQueryDto,
+    @Param('operatorId') operatorId: string,
     @Body() scheduleBody: ScheduleBodyDto,
   ): Promise<Schedule> {
-    const schedule = await this.scheduleService.createSchedule(query.operatorId, scheduleBody);
+    const schedule = await this.scheduleService.createSchedule(operatorId, scheduleBody);
     return schedule;
   }
 
