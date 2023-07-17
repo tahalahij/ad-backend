@@ -27,7 +27,7 @@ export class DeviceService {
 
     const exists = await this.deviceModel.findOne({ ip: data.ip });
     if (exists) {
-      throw new BadRequestException('دستگاه با این ایپی وجود ندارد');
+      throw new BadRequestException('دستگاه با این ایپی وجود دارد');
     }
 
     return this.deviceModel.create({

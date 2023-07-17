@@ -74,6 +74,7 @@ export class ScheduleController {
   @Get('')
   async getSchedule(@Res({ passthrough: true }) res: Response, @RealIP() deviceIp: string): Promise<File> {
     const data = await this.scheduleService.getSchedule(deviceIp);
+    this.logger.log('App gets schedule', { data });
     return data?.file;
   }
 

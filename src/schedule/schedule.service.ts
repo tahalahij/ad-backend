@@ -80,10 +80,11 @@ export class ScheduleService {
     }
 
     return recursive.find((s) => {
-      return moment().isBetween(
-        moment().hour(s.from.hour).minute(s.from.minute),
-        moment().hour(s.to.hour).minute(s.to.minute),
-      );
+      const from = moment().hour(s.from.hour).minute(s.from.minute);
+      const to = moment().hour(s.to.hour).minute(s.to.minute);
+      const now = moment();
+      this.logger.log('find matching schedules', { from, now, to });
+      return now.isBetween(from, to);
     });
   }
 
