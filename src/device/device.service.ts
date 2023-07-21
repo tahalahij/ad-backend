@@ -65,6 +65,13 @@ export class DeviceService {
     }
     return device;
   }
+  async getDeviceEnabled(ip: string): Promise<{ enabled: boolean }> {
+    const device = await this.deviceModel.findOne({ ip });
+    if (!device) {
+      throw new NotFoundException(`دستگاه پیدا نشد`);
+    }
+    return { enabled: device.enabled };
+  }
 
   async getDevicesCurrentSchedule(deviceId: string): Promise<{ schedule: Schedule; file: File }> {
     const device = await this.getDevice({ _id: deviceId });

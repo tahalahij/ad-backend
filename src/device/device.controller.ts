@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, Res, Response, UseGuards } from '@nestjs/common';
 import { DeviceService } from './device.service';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -12,11 +12,23 @@ import { UserId } from '../auth/user.id.decorator';
 import { Schedule } from '../schedule/schedule.schema';
 import { File } from '../file/file.schema';
 import { ControllerUpdateDeviceDto } from './dtos/controller.update.device.dto';
+import { RealIP } from 'nestjs-real-ip';
 
 @ApiTags('devices')
 @Controller('devices')
 export class DeviceController {
   constructor(private deviceService: DeviceService) {}
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'App gets if its enabled' })
+  @ApiResponse({ status: 200 })
+  @Get('/app/am-i-enabled')
+  async appGetsIsEnabled(
+    @Res({ passthrough: true }) res: Response,
+    @RealIP() deviceIp: string,
+  ): Promise<{ enabled: boolean }> {
+    return this.deviceService.getDeviceEnabled(deviceIp);
+  }
 
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin or controller gets all devices' })

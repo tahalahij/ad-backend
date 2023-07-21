@@ -36,7 +36,7 @@ export class StatisticsService {
       filter.fileId = dto.fileId;
     }
     if (dto.fileType) {
-      filter.fileType = (lookup(dto.fileType) || 'image/').split('/')[0];
+      filter.fileType = dto.fileType || 'image';
     }
 
     if (dto.start) {
