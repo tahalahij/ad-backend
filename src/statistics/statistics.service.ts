@@ -15,7 +15,7 @@ export class StatisticsService {
     const statisticsDoc = await this.statisticsModel.create({
       fileId: file._id,
       duration: file.delay,
-      fileType: lookup(file.type),
+      fileType: file.type,
       ip,
       createdAt: new Date(),
     });
@@ -36,7 +36,7 @@ export class StatisticsService {
       filter.fileId = dto.fileId;
     }
     if (dto.fileType) {
-      filter.fileType = lookup(dto.fileType);
+      filter.fileType = dto.fileType || 'image';
     }
 
     if (dto.start) {

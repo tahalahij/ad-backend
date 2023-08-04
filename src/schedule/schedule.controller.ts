@@ -35,10 +35,10 @@ export class ScheduleController {
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
   @Post('admin/:operatorId')
   async adminCreateSchedule(
-    @Query() query: OperatorIdQueryDto,
+    @Param('operatorId') operatorId: string,
     @Body() scheduleBody: ScheduleBodyDto,
   ): Promise<Schedule> {
-    const schedule = await this.scheduleService.createSchedule(query.operatorId, scheduleBody);
+    const schedule = await this.scheduleService.createSchedule(operatorId, scheduleBody);
     return schedule;
   }
 
@@ -74,6 +74,7 @@ export class ScheduleController {
   @Get('')
   async getSchedule(@Res({ passthrough: true }) res: Response, @RealIP() deviceIp: string): Promise<File> {
     const data = await this.scheduleService.getSchedule(deviceIp);
+    this.logger.log('App gets schedule', { data });
     return data?.file;
   }
 

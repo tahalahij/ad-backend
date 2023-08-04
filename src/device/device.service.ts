@@ -27,7 +27,7 @@ export class DeviceService {
 
     const exists = await this.deviceModel.findOne({ ip: data.ip });
     if (exists) {
-      throw new BadRequestException('دستگاه با این ایپی وجود ندارد');
+      throw new BadRequestException('دستگاه با این ایپی وجود دارد');
     }
 
     return this.deviceModel.create({
@@ -64,6 +64,13 @@ export class DeviceService {
       throw new NotFoundException(`دستگاه پیدا نشد`);
     }
     return device;
+  }
+  async getDeviceEnabled(ip: string): Promise<{ enabled: boolean }> {
+    const device = await this.deviceModel.findOne({ ip });
+    if (!device) {
+      throw new NotFoundException(`دستگاه پیدا نشد`);
+    }
+    return { enabled: device.enabled };
   }
 
   async getDevicesCurrentSchedule(deviceId: string): Promise<{ schedule: Schedule; file: File }> {
