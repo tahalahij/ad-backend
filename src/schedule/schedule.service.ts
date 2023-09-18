@@ -87,6 +87,15 @@ export class ScheduleService {
       return now.isBetween(from, to);
     });
   }
+  async hasConductorBeenUsed(conductorId: string): Promise<void> {
+    const schedules = await this.scheduleModel.find({ conductor: conductorId });
+    if (schedules?.length) {
+      const names = schedules.map((s) => s.name);
+      const message = `  این سری پخش در برنامه های  ${names} استفاده شده است:`;
+      throw new BadRequestException(message);
+    }
+    return null;
+  }
 
   async getSchedule(ip: string): Promise<{ schedule: Schedule; file: File }> {
     this.logger.log('in getSchedule ', { ip });
