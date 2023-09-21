@@ -154,6 +154,7 @@ export class FileService {
     if (!file) {
       throw new NotFoundException('فایل پیدا نشد');
     }
+    await this.conductorService.hasFileBeenUsed(fileId);
     fs.unlink(join(process.cwd(), file.path), (param) => {
       this.logger.log('remove file', { param });
     });
