@@ -37,7 +37,7 @@ export class ConductorService {
     const conductors = await this.conductorModel.find({ conductor: { $in: fileId } });
     if (conductors?.length) {
       const names = conductors.map((c) => c.name);
-      const message = ` این فایل در سریهای پخش  ${names} استفاده شده است:`;
+      const message = ` این فایل در سری ${names?.length > 1 ? 'ها' : ''}ی پخش  ${names} استفاده شده است:`;
       throw new BadRequestException(message);
     }
     return null;
@@ -68,6 +68,7 @@ export class ConductorService {
     if (!exists) {
       throw new NotFoundException('کنداکتور وجود ندارد');
     }
+    await this.scheduleService.hasConductorBeenUsed(id);
     return exists.remove();
   }
 }
