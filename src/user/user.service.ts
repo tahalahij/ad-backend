@@ -24,6 +24,14 @@ export class UserService {
     return this.userModel.find({ role: RolesType.OPERATOR }).lean();
   }
 
+  public async getOperator(id: string): Promise<User> {
+    const user = await this.userModel.findById(id).lean();
+    if (!user) {
+      throw new NotFoundException('اپراتور پیدا نشد');
+    }
+    return user;
+  }
+
   public async getControllers(): Promise<UserDocument[]> {
     return this.userModel.find({ role: RolesType.CONTROLLER }).lean();
   }

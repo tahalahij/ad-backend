@@ -26,6 +26,15 @@ export class UserController {
   }
 
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'Admin or controller gets operator info' })
+  @ApiResponse({ status: 200, type: User })
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN, RolesType.CONTROLLER]))
+  @Get('/admin/operators/:id')
+  async getOperator(@Param('id') id: string): Promise<User> {
+    return this.userService.getOperator(id);
+  }
+
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin gets all controllers' })
   @ApiResponse({ status: 200, type: User })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
