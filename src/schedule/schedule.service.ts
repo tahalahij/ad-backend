@@ -91,7 +91,7 @@ export class ScheduleService {
     const schedules = await this.scheduleModel.find({ conductor: conductorId });
     if (schedules?.length) {
       const names = schedules.map((s) => s.name);
-      const message = `  این سری پخش در برنامه های  ${names} استفاده شده است:`;
+      const message = ` این سری پخش در برنامه ${names?.length > 1 ? 'ها' : ''}ی ${names}  استفاده شده است`;
       throw new BadRequestException(message);
     }
     return null;
