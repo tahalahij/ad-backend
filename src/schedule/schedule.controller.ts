@@ -12,6 +12,7 @@ import { File } from '../file/file.schema';
 import { GetSchedulesByAdminDto } from './dtos/get-schedules-by-admin.dto';
 import { OperatorIdQueryDto } from './dtos/operator.id.query.dto';
 import { Azan } from './azan.schema';
+import { PaginationRes } from '../utils/pagination.util';
 
 @ApiTags('schedule')
 @Controller('schedule')
@@ -47,7 +48,7 @@ export class ScheduleController {
   @ApiResponse({ status: 200 })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.OPERATOR]))
   @Get('/operators')
-  async getOperatorsSchedules(@UserId() operatorId: string): Promise<Schedule[]> {
+  async getOperatorsSchedules(@UserId() operatorId: string): Promise<PaginationRes> {
     return this.scheduleService.getOperatorsSchedules(operatorId);
   }
 
@@ -56,7 +57,7 @@ export class ScheduleController {
   @ApiResponse({ status: 200 })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
   @Get('/admin')
-  async adminGetSchedules(@Query() query: GetSchedulesByAdminDto): Promise<Schedule[]> {
+  async adminGetSchedules(@Query() query: GetSchedulesByAdminDto): Promise<PaginationRes> {
     return this.scheduleService.getSchedules(query);
   }
   @ApiBearerAuth()
@@ -64,7 +65,7 @@ export class ScheduleController {
   @ApiResponse({ status: 200 })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.CONTROLLER]))
   @Get('/controller')
-  async controllerGetSchedules(@Query() query: GetSchedulesByAdminDto): Promise<Schedule[]> {
+  async controllerGetSchedules(@Query() query: GetSchedulesByAdminDto): Promise<PaginationRes> {
     return this.scheduleService.getSchedules(query);
   }
 

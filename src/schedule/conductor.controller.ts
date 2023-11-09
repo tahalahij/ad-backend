@@ -11,6 +11,7 @@ import mongoose from 'mongoose';
 import { PaginationQueryDto } from './dtos/pagination.dto';
 import { GetConductorsByAdminDto } from './dtos/get-conductors-by-admin.dto';
 import { AdminCreateConductorBodyDto } from './dtos/admin.create.conductor.body.dto';
+import { PaginationRes } from '../utils/pagination.util';
 
 @ApiTags('conductors')
 @Controller('conductors')
@@ -74,7 +75,7 @@ export class ConductorController {
   @ApiResponse({ status: 200, type: Conductor })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN, RolesType.CONTROLLER]))
   @Get('/admin')
-  async getConductors(@Query() query: GetConductorsByAdminDto): Promise<Conductor[]> {
+  async getConductors(@Query() query: GetConductorsByAdminDto): Promise<PaginationRes> {
     return this.conductorService.getOperatorsConductors(query);
   }
 
@@ -83,7 +84,7 @@ export class ConductorController {
   @ApiResponse({ status: 200, type: Conductor })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.OPERATOR]))
   @Get('/')
-  async getFiles(@UserId() operator: string, @Query() queryDto: PaginationQueryDto): Promise<Conductor[]> {
+  async getFiles(@UserId() operator: string, @Query() queryDto: PaginationQueryDto): Promise<PaginationRes> {
     return this.conductorService.getOperatorsConductors({ operator, ...queryDto });
   }
 }

@@ -3,6 +3,8 @@ import { Model } from 'mongoose';
 import { SystemSetting, SystemSettingDocument } from './system-setting.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { SystemSettingsEnum } from './enum/system-settings.enum';
+import paginate, { PaginationRes } from '../utils/pagination.util';
+import { RolesType } from '../auth/role.type';
 
 @Injectable()
 export class SystemSettingService {
@@ -21,8 +23,8 @@ export class SystemSettingService {
     return this.systemSettingModel.findByIdAndUpdate(id, { value });
   }
 
-  async getSystemSettings(): Promise<SystemSettingDocument[]> {
-    return this.systemSettingModel.find({}).lean();
+  async getSystemSettings(): Promise<PaginationRes> {
+    return paginate(this.systemSettingModel, {}, {});
   }
 
   async upsertSystemSetting(name: SystemSettingsEnum, value: any): Promise<SystemSetting> {

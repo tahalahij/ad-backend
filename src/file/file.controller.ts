@@ -32,6 +32,7 @@ import { RolesType } from '../auth/role.type';
 import { IpAccessCheckGuard } from '../auth/ip.access.guard';
 import { PaginationQueryDto } from '../schedule/dtos/pagination.dto';
 import { GetFilesByAdminDto } from './dtos/get-files-by-admin.dto';
+import { PaginationRes } from '../utils/pagination.util';
 
 function editFileName(req, file, callback) {
   const name = file.originalname.split('.')[0];
@@ -260,7 +261,7 @@ export class FileController {
   async getFiles(
     @UserId() operatorId: mongoose.Types.ObjectId,
     @Query() queryDto: PaginationQueryDto,
-  ): Promise<File[]> {
+  ): Promise<PaginationRes> {
     return this.fileService.getFiles(operatorId, queryDto);
   }
 
@@ -269,7 +270,7 @@ export class FileController {
   @ApiResponse({ status: 200, type: File })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN, RolesType.CONTROLLER]))
   @Get('/')
-  async adminGetFiles(@Query() queryDto: GetFilesByAdminDto): Promise<File[]> {
+  async adminGetFiles(@Query() queryDto: GetFilesByAdminDto): Promise<PaginationRes> {
     return this.fileService.getFilesByAdmin(queryDto);
   }
 }

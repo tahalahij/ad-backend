@@ -5,6 +5,7 @@ import { Conductor } from './conductor.schema';
 import { ConductorBodyDto } from './dtos/conductor.body.dto';
 import { GetConductorsByAdminDto } from './dtos/get-conductors-by-admin.dto';
 import { ScheduleService } from './schedule.service';
+import paginate, { PaginationRes } from '../utils/pagination.util';
 
 @Injectable()
 export class ConductorService {
@@ -14,19 +15,14 @@ export class ConductorService {
     private scheduleService: ScheduleService,
   ) {}
 
-  async getOperatorsConductors(query: GetConductorsByAdminDto): Promise<Conductor[]> {
-    const { operator, ...rest } = query;
-    const limit = rest.limit || 10;
-    const page = rest.page || 0;
+  async getOperatorsConductors(query: GetConductorsByAdminDto): Promise<PaginationRes> {
+    const { operator, ...options } = query;
+
     const filter: any = {};
     if (operator) {
       filter.operator = operator;
     }
-    return this.conductorModel
-      .find(filter)
-      .skip(limit * page)
-      .limit(limit)
-      .lean();
+    return paginate(this.conductorModel, filter, options);
   }
 
   async create(operator: string, body: ConductorBodyDto): Promise<Conductor> {

@@ -18,6 +18,7 @@ import { Moment } from 'moment';
 import { handleIPV6 } from 'src/utils/helper';
 import { SystemSettingService } from '../system-settings/system-setting.service';
 import { SystemSettingsEnum } from '../system-settings/enum/system-settings.enum';
+import paginate, { PaginationRes } from '../utils/pagination.util';
 
 @Injectable()
 export class ScheduleService {
@@ -32,9 +33,7 @@ export class ScheduleService {
     @Inject(forwardRef(() => SystemSettingService)) private systemSettingService: SystemSettingService,
   ) {}
 
-  async getSchedules(query: GetSchedulesByAdminDto): Promise<Schedule[]> {
-    const limit = query?.limit || 10;
-    const page = query?.page || 0;
+  async getSchedules(query: GetSchedulesByAdminDto): Promise<PaginationRes> {
     const where: any = {};
     if (query.operator) {
       where.operator = query.operator;
@@ -42,15 +41,11 @@ export class ScheduleService {
     if (query.deviceId) {
       where.device = query.deviceId;
     }
-    const schedules: Schedule[] = await this.scheduleModel
-      .find(where)
-      .skip(limit * page)
-      .limit(limit)
-      .populate('operator')
-      .populate('conductor')
-      .populate('device')
-      .lean();
-    return schedules;
+    return paginate(this.scheduleModel, where, {
+      populates: ['operator', 'conductor', 'device'],
+      page: query?.page,
+      limit: query?.limit,
+    });
   }
   async getCurrentSchedule(ip: string): Promise<Schedule> {
     const now = moment();
@@ -202,8 +197,8 @@ export class ScheduleService {
       { upsert: true, new: true },
     );
   }
-  async getOperatorsSchedules(operator: string): Promise<Schedule[]> {
-    return this.scheduleModel.find({ operator }).populate('device').lean();
+  async getOperatorsSchedules(operator: string): Promise<PaginationRes> {
+    return paginate(this.scheduleModel, { operator }, { populates: ['device'] });
   }
   async getScheduleById(operator: string, id: string): Promise<Schedule> {
     return this.scheduleModel.findOne({ operator, _id: id });

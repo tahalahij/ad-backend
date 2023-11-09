@@ -26,6 +26,7 @@ import { getAudioDurationInSeconds } from 'get-audio-duration';
 import { AzanTypeEnum } from '../schedule/enums/azan.type.enum';
 import * as NodeBuffer from 'node:buffer';
 import { GetFilesByAdminDto } from './dtos/get-files-by-admin.dto';
+import paginate, { PaginationRes } from '../utils/pagination.util';
 
 @Injectable()
 export class FileService {
@@ -108,30 +109,17 @@ export class FileService {
     }
     await this.systemSettingService.upsertSystemSetting(SystemSettingsEnum.AZAN_DURATION, duration);
   }
-  async getFiles(ownerId: mongoose.Types.ObjectId, query: PaginationQueryDto): Promise<File[]> {
-    const limit = query.limit || 10;
-    const page = query.page || 0;
-    return this.fileModel
-      .find({
-        ownerId,
-      })
-      .skip(limit * page)
-      .limit(limit)
-      .lean();
+  async getFiles(ownerId: mongoose.Types.ObjectId, paginationQuery: PaginationQueryDto): Promise<PaginationRes> {
+    return paginate(this.fileModel, { ownerId }, paginationQuery);
   }
 
-  async getFilesByAdmin(query: GetFilesByAdminDto): Promise<File[]> {
+  async getFilesByAdmin({ operator, ...options }: GetFilesByAdminDto): Promise<PaginationRes> {
     const filter: any = {};
-    if (query.operator) {
-      filter.ownerId = query.operator;
+    if (operator) {
+      filter.ownerId = operator;
     }
-    const limit = query.limit || 10;
-    const page = query.page || 0;
-    return this.fileModel
-      .find(filter)
-      .skip(limit * page)
-      .limit(limit)
-      .lean();
+
+    return paginate(this.fileModel, filter, options);
   }
   async getFileById(id: string | mongoose.Types.ObjectId): Promise<FileDocument> {
     return this.fileModel.findById(id);
