@@ -9,6 +9,7 @@ import { Schedule } from '../schedule/schedule.schema';
 import { File } from '../file/file.schema';
 import { GetDevicesQueryDto } from './dtos/get.devices.query.dto';
 import { UserService } from '../user/user.service';
+import paginate, { PaginationRes } from '../utils/pagination.util';
 
 @Injectable()
 export class DeviceService {
@@ -47,15 +48,14 @@ export class DeviceService {
     return this.deviceModel.findByIdAndUpdate(id, updateObj);
   }
 
-  async getDevices({ _sort, _order, limit, page, ...rest }: GetDevicesQueryDto): Promise<DeviceDocument[]> {
-    limit = limit || 10;
-    page = page || 0;
-    return this.deviceModel
-      .find({ ...rest })
-      .skip(limit * page)
-      .limit(limit)
-      .populate('operatorId')
-      .lean();
+  async getDevices({ _sort, _order, limit, page, ...rest }: GetDevicesQueryDto): Promise<PaginationRes> {
+    return paginate(this.deviceModel, rest, {
+      populates: ['operatorId'],
+      page,
+      limit,
+      _sort,
+      _order,
+    });
   }
 
   async getDevice(filter = {}): Promise<DeviceDocument> {
