@@ -10,6 +10,7 @@ import { RolesType } from '../auth/role.type';
 import { UpdateUserDto } from './dtos/update.user.dto';
 import { CreateUserDto } from './dtos/create.user.dto';
 import { ConfigService } from '@nestjs/config';
+import paginate, { PaginationRes } from '../utils/pagination.util';
 
 @Injectable()
 export class UserService {
@@ -20,8 +21,8 @@ export class UserService {
     private readonly configService: ConfigService,
   ) {}
 
-  public async getOperators(): Promise<UserDocument[]> {
-    return this.userModel.find({ role: RolesType.OPERATOR }).lean();
+  public async getOperators(): Promise<PaginationRes> {
+    return paginate(this.userModel, { role: RolesType.OPERATOR }, {});
   }
 
   public async getOperator(id: string): Promise<User> {
@@ -32,8 +33,8 @@ export class UserService {
     return user;
   }
 
-  public async getControllers(): Promise<UserDocument[]> {
-    return this.userModel.find({ role: RolesType.CONTROLLER }).lean();
+  public async getControllers(): Promise<PaginationRes> {
+    return paginate(this.userModel, { role: RolesType.CONTROLLER }, {});
   }
   public async getOperatorById(id: string): Promise<UserDocument> {
     return this.userModel.findById(id);

@@ -13,6 +13,7 @@ import { Schedule } from '../schedule/schedule.schema';
 import { File } from '../file/file.schema';
 import { ControllerUpdateDeviceDto } from './dtos/controller.update.device.dto';
 import { RealIP } from 'nestjs-real-ip';
+import { PaginationRes } from '../utils/pagination.util';
 
 @ApiTags('devices')
 @Controller('devices')
@@ -35,7 +36,7 @@ export class DeviceController {
   @ApiResponse({ status: 200, type: Device })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN, RolesType.CONTROLLER]))
   @Get('/admin')
-  async getDevices(@Query() queryDto: GetDevicesQueryDto): Promise<DeviceDocument[]> {
+  async getDevices(@Query() queryDto: GetDevicesQueryDto): Promise<PaginationRes> {
     return this.deviceService.getDevices(queryDto);
   }
 
@@ -44,7 +45,7 @@ export class DeviceController {
   @ApiResponse({ status: 200, type: Device })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.OPERATOR]))
   @Get('/')
-  async getOperatorsDevices(@UserId() operatorId: string): Promise<DeviceDocument[]> {
+  async getOperatorsDevices(@UserId() operatorId: string): Promise<PaginationRes> {
     return this.deviceService.getDevices({ operatorId });
   }
 

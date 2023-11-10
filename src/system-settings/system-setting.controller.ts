@@ -7,6 +7,7 @@ import { RoleAccessCheck } from '../auth/role.access.guard';
 import { RolesType } from '../auth/role.type';
 import { UpdateSystemSettingDto } from './dtos/update.system.setting.dto';
 import { SystemSettingsEnum } from './enum/system-settings.enum';
+import { PaginationRes } from "../utils/pagination.util";
 
 @ApiTags('system-settings')
 @Controller('system-settings')
@@ -18,7 +19,7 @@ export class SystemSettingController {
   @ApiResponse({ status: 200, type: SystemSetting })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
   @Get('/admin')
-  async getSystemSettings(): Promise<SystemSettingDocument[]> {
+  async getSystemSettings(): Promise<PaginationRes> {
     return this.systemSettingService.getSystemSettings();
   }
 

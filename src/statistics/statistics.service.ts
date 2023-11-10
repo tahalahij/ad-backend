@@ -5,6 +5,7 @@ import { lookup } from 'mime-types';
 import { Statistics, StatisticsDocument } from './statistics.schema';
 import { GetStatisticsDto } from './dtos/get-statistics.dto';
 import { FileDocument } from '../file/file.schema';
+import paginate from '../utils/pagination.util';
 
 @Injectable()
 export class StatisticsService {
@@ -23,34 +24,34 @@ export class StatisticsService {
     return statisticsDoc;
   }
 
-  async getStatistics(
-    dto: GetStatisticsDto,
-  ): Promise<{ details: IterableIterator<[any, any]>; statistics: Statistics[] }> {
-    const limit = dto?.limit || 10;
-    const page = dto?.page || 0;
+  async getStatistics({
+    ip,
+    fileType,
+    fileId,
+    start,
+    end,
+    ...options
+  }: GetStatisticsDto): Promise<{ total: number; details: IterableIterator<[any, any]>; statistics: any[] }> {
     const filter: any = { created_at: { $lte: new Date() } };
-    if (dto.ip) {
-      filter.ip = dto.ip;
+    if (ip) {
+      filter.ip = ip;
     }
-    if (dto.fileId) {
-      filter.fileId = dto.fileId;
+    if (fileId) {
+      filter.fileId = fileId;
     }
-    if (dto.fileType) {
-      filter.fileType = dto.fileType || 'image';
-    }
-
-    if (dto.start) {
-      filter.created_at['$gte'] = dto.start;
+    if (fileType) {
+      filter.fileType = fileType || 'image';
     }
 
-    if (dto.end) {
-      filter.created_at['$lte'] = dto.end;
+    if (start) {
+      filter.created_at['$gte'] = start;
     }
-    const statistics: Array<Statistics> = await this.statisticsModel
-      .find(filter)
-      .skip(limit * page)
-      .limit(limit)
-      .lean();
+
+    if (end) {
+      filter.created_at['$lte'] = end;
+    }
+    const { total, data: statistics } = await paginate(this.statisticsModel, filter, options);
+
     const details = new Map();
     statistics.map((s) => {
       if (details.has(s.fileType)) {
@@ -63,6 +64,7 @@ export class StatisticsService {
     return {
       statistics,
       details: details.entries(),
+      total,
     };
   }
 }

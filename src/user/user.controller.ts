@@ -10,6 +10,7 @@ import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { UserId } from '../auth/user.id.decorator';
 import { RoleAccessCheck } from '../auth/role.access.guard';
 import { OperatorUpdateOwnDto } from './dtos/operator.update.own.dto';
+import { PaginationRes } from "../utils/pagination.util";
 
 @ApiTags('users')
 @Controller('users')
@@ -21,7 +22,7 @@ export class UserController {
   @ApiResponse({ status: 200, type: User })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN, RolesType.CONTROLLER]))
   @Get('/admin/operators')
-  async getOperators(): Promise<UserDocument[]> {
+  async getOperators(): Promise<PaginationRes> {
     return this.userService.getOperators();
   }
 
@@ -39,7 +40,7 @@ export class UserController {
   @ApiResponse({ status: 200, type: User })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
   @Get('/admin/controllers')
-  async getControllers(): Promise<UserDocument[]> {
+  async getControllers(): Promise<PaginationRes> {
     return this.userService.getControllers();
   }
 
