@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, UseGuards, UseInterceptors } from '@nestjs/common';
 import { UserService } from './user.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -10,7 +10,8 @@ import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { UserId } from '../auth/user.id.decorator';
 import { RoleAccessCheck } from '../auth/role.access.guard';
 import { OperatorUpdateOwnDto } from './dtos/operator.update.own.dto';
-import { PaginationRes } from "../utils/pagination.util";
+import { PaginationRes } from '../utils/pagination.util';
+import { StripperPasswordFromUserInterceptor } from './interceptors/stripper.password.from.user.interceptor';
 
 @ApiTags('users')
 @Controller('users')
@@ -21,6 +22,7 @@ export class UserController {
   @ApiOperation({ summary: 'Admin or controller gets all users' })
   @ApiResponse({ status: 200, type: User })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN, RolesType.CONTROLLER]))
+  @UseInterceptors(StripperPasswordFromUserInterceptor)
   @Get('/admin/operators')
   async getOperators(): Promise<PaginationRes> {
     return this.userService.getOperators();
@@ -30,6 +32,7 @@ export class UserController {
   @ApiOperation({ summary: 'Admin or controller gets operator info' })
   @ApiResponse({ status: 200, type: User })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN, RolesType.CONTROLLER]))
+  @UseInterceptors(StripperPasswordFromUserInterceptor)
   @Get('/admin/operators/:id')
   async getOperator(@Param('id') id: string): Promise<User> {
     return this.userService.getOperator(id);
@@ -39,6 +42,7 @@ export class UserController {
   @ApiOperation({ summary: 'Admin gets all controllers' })
   @ApiResponse({ status: 200, type: User })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
+  @UseInterceptors(StripperPasswordFromUserInterceptor)
   @Get('/admin/controllers')
   async getControllers(): Promise<PaginationRes> {
     return this.userService.getControllers();
@@ -48,6 +52,7 @@ export class UserController {
   @ApiOperation({ summary: 'Admin creates a operator or controller' })
   @ApiResponse({ status: 200, type: User })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
+  @UseInterceptors(StripperPasswordFromUserInterceptor)
   @Post('/admin')
   async addUser(@Body() body: CreateUserDto): Promise<User> {
     return this.userService.createNewUser(body);
@@ -57,6 +62,7 @@ export class UserController {
   @ApiOperation({ summary: 'Admin updates his info' })
   @ApiResponse({ status: 200, type: User })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
+  @UseInterceptors(StripperPasswordFromUserInterceptor)
   @Patch('/admin')
   async adminUpdateHisPass(@UserId('id') adminId: string, @Body() body: UpdateUserDto): Promise<User> {
     return this.userService.updateUser(adminId, body);
@@ -66,6 +72,7 @@ export class UserController {
   @ApiOperation({ summary: 'Operator updates his info' })
   @ApiResponse({ status: 200, type: User })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.OPERATOR]))
+  @UseInterceptors(StripperPasswordFromUserInterceptor)
   @Patch('/operator')
   async resetPassword(@UserId('id') operatorId: string, @Body() body: OperatorUpdateOwnDto): Promise<User> {
     return this.userService.updateUser(operatorId, body);
@@ -75,6 +82,7 @@ export class UserController {
   @ApiOperation({ summary: 'Admin updates a operator or controller' })
   @ApiResponse({ status: 200, type: User })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
+  @UseInterceptors(StripperPasswordFromUserInterceptor)
   @Patch('/admin/:id')
   async updateUser(@Param('id') id: string, @Body() body: UpdateUserDto): Promise<User> {
     return this.userService.updateUser(id, body);

@@ -36,9 +36,6 @@ export class UserService {
   public async getControllers(): Promise<PaginationRes> {
     return paginate(this.userModel, { role: RolesType.CONTROLLER }, {});
   }
-  public async getOperatorById(id: string): Promise<UserDocument> {
-    return this.userModel.findById(id);
-  }
   public async validateUser({ username, password }: UserLoginDto): Promise<UserJwtPayload> {
     const user = await this.userModel.findOne({ username });
     if (!user) {
@@ -75,7 +72,8 @@ export class UserService {
       updateObj.password = await this.CryptoService.hashPassword(updateObj.password);
     }
     user.set(updateObj);
-    return user.save();
+    await user.save();
+    return user.toObject();
   }
 
   async seedAdmin() {
