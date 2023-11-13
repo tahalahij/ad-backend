@@ -74,11 +74,7 @@ export class UserService {
     if (updateObj.password) {
       updateObj.password = await this.CryptoService.hashPassword(updateObj.password);
     }
-    user.set({
-      ip: updateObj.ip,
-      mac: updateObj.mac,
-      name: updateObj.name,
-    });
+    user.set(updateObj);
     return user.save();
   }
 
