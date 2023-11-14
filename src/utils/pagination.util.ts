@@ -25,9 +25,12 @@ export default async function paginate(
     .find(where)
     .skip(limit * page)
     .limit(limit);
-  populates.map((p) => {
-    query = query.populate(p);
-  });
+  if (populates && populates?.length) {
+    populates.map((p) => {
+      query = query.populate(p);
+    });
+  }
+
   const order = _order === OrderEnum.ASC ? 1 : -1;
   if (_sort) {
     query.sort({ [_sort]: order });

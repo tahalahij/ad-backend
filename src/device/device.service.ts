@@ -21,10 +21,7 @@ export class DeviceService {
   ) {}
 
   async createNewDevice(data: CreateDeviceDto): Promise<Device> {
-    const operator = await this.userService.getOperatorById(data.operatorId);
-    if (!operator) {
-      throw new BadRequestException('اپراتور پیدا نشد');
-    }
+    await this.userService.getOperator(data.operatorId);
 
     const exists = await this.deviceModel.findOne({ ip: data.ip });
     if (exists) {
