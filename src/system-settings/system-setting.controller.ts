@@ -7,7 +7,9 @@ import { RoleAccessCheck } from '../auth/role.access.guard';
 import { RolesType } from '../auth/role.type';
 import { UpdateSystemSettingDto } from './dtos/update.system.setting.dto';
 import { SystemSettingsEnum } from './enum/system-settings.enum';
-import { PaginationRes } from "../utils/pagination.util";
+import { PaginationRes } from '../utils/pagination.util';
+import { ReqUser } from '../auth/request.initiator.decorator';
+import { UserJwtPayload } from '../auth/user.jwt.type';
 
 @ApiTags('system-settings')
 @Controller('system-settings')
@@ -28,8 +30,12 @@ export class SystemSettingController {
   @ApiResponse({ status: 200, type: SystemSetting })
   @Patch('/admin/:id')
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
-  async updateSystemSetting(@Param('id') id: string, @Body() body: UpdateSystemSettingDto): Promise<SystemSetting> {
-    return this.systemSettingService.updateSystemSetting(id, body.value);
+  async updateSystemSetting(
+    @Param('id') id: string,
+    @Body() body: UpdateSystemSettingDto,
+    @ReqUser() initiator: UserJwtPayload,
+  ): Promise<SystemSetting> {
+    return this.systemSettingService.updateSystemSetting(initiator, id, body.value);
   }
 
   @ApiBearerAuth()

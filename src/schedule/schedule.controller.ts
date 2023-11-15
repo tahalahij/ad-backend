@@ -10,9 +10,10 @@ import { RoleAccessCheck } from '../auth/role.access.guard';
 import { RolesType } from '../auth/role.type';
 import { File } from '../file/file.schema';
 import { GetSchedulesByAdminDto } from './dtos/get-schedules-by-admin.dto';
-import { OperatorIdQueryDto } from './dtos/operator.id.query.dto';
 import { Azan } from './azan.schema';
 import { PaginationRes } from '../utils/pagination.util';
+import { ReqUser } from '../auth/request.initiator.decorator';
+import { UserJwtPayload } from '../auth/user.jwt.type';
 
 @ApiTags('schedule')
 @Controller('schedule')
@@ -25,8 +26,8 @@ export class ScheduleController {
   @ApiResponse({ status: 200 })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.OPERATOR]))
   @Post('')
-  async createSchedule(@UserId() adminId: string, @Body() scheduleBody: ScheduleBodyDto): Promise<Schedule> {
-    const schedule = await this.scheduleService.createSchedule(adminId, scheduleBody);
+  async createSchedule(@ReqUser() initiator: UserJwtPayload, @Body() scheduleBody: ScheduleBodyDto): Promise<Schedule> {
+    const schedule = await this.scheduleService.createSchedule(initiator, initiator.id, scheduleBody);
     return schedule;
   }
 
@@ -38,8 +39,9 @@ export class ScheduleController {
   async adminCreateSchedule(
     @Param('operatorId') operatorId: string,
     @Body() scheduleBody: ScheduleBodyDto,
+    @ReqUser() initiator: UserJwtPayload,
   ): Promise<Schedule> {
-    const schedule = await this.scheduleService.createSchedule(operatorId, scheduleBody);
+    const schedule = await this.scheduleService.createSchedule(initiator, operatorId, scheduleBody);
     return schedule;
   }
 
@@ -91,16 +93,16 @@ export class ScheduleController {
   @ApiOperation({ summary: 'Operator removes schedule' })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.OPERATOR]))
   @Delete('/:id')
-  async delSchedule(@Param('id') id: string, @UserId() adminId: string): Promise<Schedule> {
-    return this.scheduleService.delete(adminId, id);
+  async delSchedule(@Param('id') id: string, @ReqUser() initiator: UserJwtPayload): Promise<Schedule> {
+    return this.scheduleService.operatorDelete(initiator, id);
   }
 
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin or controller removes schedule' })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN, RolesType.CONTROLLER]))
   @Delete('admin/:id')
-  async adminDelSchedule(@Param('id') id: string): Promise<Schedule> {
-    return this.scheduleService.adminDelete(id);
+  async adminDelSchedule(@Param('id') id: string, @ReqUser() initiator: UserJwtPayload): Promise<Schedule> {
+    return this.scheduleService.adminDelete(initiator, id);
   }
 
   @ApiBearerAuth()

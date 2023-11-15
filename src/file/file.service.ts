@@ -27,6 +27,9 @@ import { AzanTypeEnum } from '../schedule/enums/azan.type.enum';
 import * as NodeBuffer from 'node:buffer';
 import { GetFilesByAdminDto } from './dtos/get-files-by-admin.dto';
 import paginate, { PaginationRes } from '../utils/pagination.util';
+import { AuditLogsService } from '../audit-logs/audit-logs.service';
+import { UserJwtPayload } from '../auth/user.jwt.type';
+import { persianStringJoin } from '../utils/helper';
 
 @Injectable()
 export class FileService {
@@ -35,10 +38,16 @@ export class FileService {
     @InjectModel(File.name) private fileModel: Model<File>,
     @Inject(forwardRef(() => ConductorService)) private conductorService: ConductorService,
     @Inject(forwardRef(() => ScheduleService)) private scheduleService: ScheduleService,
+    @Inject(forwardRef(() => AuditLogsService)) private auditLogsService: AuditLogsService,
     private systemSettingService: SystemSettingService,
   ) {}
 
-  async createFile(ownerId: string, file: Express.Multer.File, uploadDto: UploadDto): Promise<FileDocument> {
+  async createFile(
+    initiator: UserJwtPayload,
+    ownerId: string,
+    file: Express.Multer.File,
+    uploadDto: UploadDto,
+  ): Promise<FileDocument> {
     const sizeLimit = await this.systemSettingService.getSystemSetting(SystemSettingsEnum.FILE_SIZE_LIMIT_IN_MEGA_BYTE);
     if (10 ** 6 * Number(sizeLimit.value) < file.size) {
       throw new BadRequestException(`فایل نمیتواند از  ${sizeLimit.value} مگابایت بزرگتر باشد`);
@@ -53,12 +62,22 @@ export class FileService {
       type: (lookup(file.filename) || 'image/').split('/')[0],
       createdAt: new Date(),
     });
+    this.auditLogsService.log({
+      role: initiator.role,
+      initiatorId: initiator.id,
+      initiatorName: initiator.name,
+      description: persianStringJoin([' اپلود فایل ', file.filename]),
+    });
     this.logger.log('File created', { fileDoc });
     return fileDoc;
   }
 
-  async uploadAzanXlsx(files: Express.Multer.File[]): Promise<void> {
+  async uploadAzanXlsx(initiator: UserJwtPayload, files: Express.Multer.File[]): Promise<void> {
     const dir = process.cwd() + '/temp/'; // files are stored in temp directory
+    const range = {
+      start: null,
+      end: null,
+    };
     files.map((f) => {
       const buf = fs.readFileSync(dir + f.filename);
       const workBook = XLSX.read(buf);
@@ -66,6 +85,10 @@ export class FileService {
       const timeAndDates = jsonData.map((d) => {
         return { date: d['تاریخ میلادی'], noon: d['اذان ظهر'], vesper: d['اذان مغرب'], sunrise: d['اذان صبح'] };
       });
+
+      range.start = timeAndDates[0].date; // for finding the first and last date
+      range.end = timeAndDates[timeAndDates.length - 1].date; // for finding the first and last date
+
       timeAndDates.forEach((i) => {
         this.scheduleService.createAzanSchedule(i.date, i.sunrise, AzanTypeEnum.SUNRISE);
         this.scheduleService.createAzanSchedule(i.date, i.noon, AzanTypeEnum.NOON);
@@ -76,9 +99,15 @@ export class FileService {
     for (const file of fs.readdirSync(dir)) {
       await fs.unlinkSync(dir + file);
     }
+    this.auditLogsService.log({
+      role: initiator.role,
+      initiatorId: initiator.id,
+      initiatorName: initiator.name,
+      description: persianStringJoin(['   اپلود فایل زمان اذان ', range.start, ' تا ', range.end]),
+    });
   }
 
-  async uploadAzanFile(file: Express.Multer.File): Promise<void> {
+  async uploadAzanFile(initiator: UserJwtPayload, file: Express.Multer.File): Promise<void> {
     const dir = process.cwd() + '/files/azan/'; // files are stored in temp directory
     for (const fileName of fs.readdirSync(dir)) {
       // remove prevoius files
@@ -107,6 +136,12 @@ export class FileService {
     } else {
       throw new BadRequestException(' فرمت فایل ارسالی پذیرفته نمیشود: تنها فایلهای mp3, mp4');
     }
+    this.auditLogsService.log({
+      role: initiator.role,
+      initiatorId: initiator.id,
+      initiatorName: initiator.name,
+      description: '   اپلود فایل  اذان ',
+    });
     await this.systemSettingService.upsertSystemSetting(SystemSettingsEnum.AZAN_DURATION, duration);
   }
   async getFiles(ownerId: mongoose.Types.ObjectId, paginationQuery: PaginationQueryDto): Promise<PaginationRes> {
@@ -125,19 +160,25 @@ export class FileService {
     return this.fileModel.findById(id);
   }
 
-  async deleteFile(admin: string, fileId: string): Promise<{ message: string }> {
-    const file = await this.fileModel.findOne({ _id: fileId, ownerId: admin });
+  async deleteFile(initiator: UserJwtPayload, fileId: string): Promise<{ message: string }> {
+    const file = await this.fileModel.findOne({ _id: fileId, ownerId: initiator.id });
     if (!file) {
       throw new NotFoundException('فایل پیدا نشد');
     }
     fs.unlink(join(process.cwd(), file.path), (param) => {
       this.logger.log('remove file', { param });
     });
-    await this.conductorService.removeFileFromConductors(file._id);
+    await this.conductorService.removeFileFromConductors(initiator, String(file._id));
+    this.auditLogsService.log({
+      role: initiator.role,
+      initiatorId: initiator.id,
+      initiatorName: initiator.name,
+      description: persianStringJoin([' اپراتور فایل خود را پاک کرد', file.name]),
+    });
     await file.remove();
     return { message: 'file removed from conductors as well' };
   }
-  async adminDeleteFile(fileId: string): Promise<{ message: string }> {
+  async adminDeleteFile(initiator: UserJwtPayload, fileId: string): Promise<{ message: string }> {
     const file = await this.fileModel.findOne({ _id: fileId });
     if (!file) {
       throw new NotFoundException('فایل پیدا نشد');
@@ -146,7 +187,13 @@ export class FileService {
     fs.unlink(join(process.cwd(), file.path), (param) => {
       this.logger.log('remove file', { param });
     });
-    await this.conductorService.removeFileFromConductors(file._id);
+    await this.conductorService.removeFileFromConductors(initiator, String(file._id));
+    this.auditLogsService.log({
+      role: initiator.role,
+      initiatorId: initiator.id,
+      initiatorName: initiator.name,
+      description: persianStringJoin(['  ادمین فایل را پاک کرد', file.name]),
+    });
     await file.remove();
     return { message: 'file removed from conductors as well' };
   }

@@ -4,7 +4,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesType } from '../auth/role.type';
 import { CreateUserDto } from './dtos/create.user.dto';
-import { User, UserDocument } from './user.schema';
+import { User } from './user.schema';
 import { UpdateUserDto } from './dtos/update.user.dto';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { UserId } from '../auth/user.id.decorator';
@@ -12,6 +12,8 @@ import { RoleAccessCheck } from '../auth/role.access.guard';
 import { OperatorUpdateOwnDto } from './dtos/operator.update.own.dto';
 import { PaginationRes } from '../utils/pagination.util';
 import { StripperPasswordFromUserInterceptor } from './interceptors/stripper.password.from.user.interceptor';
+import { ReqUser } from '../auth/request.initiator.decorator';
+import { UserJwtPayload } from '../auth/user.jwt.type';
 
 @ApiTags('users')
 @Controller('users')
@@ -54,8 +56,8 @@ export class UserController {
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
   @UseInterceptors(StripperPasswordFromUserInterceptor)
   @Post('/admin')
-  async addUser(@Body() body: CreateUserDto): Promise<User> {
-    return this.userService.createNewUser(body);
+  async addUser(@Body() body: CreateUserDto, @ReqUser() initiator: UserJwtPayload): Promise<User> {
+    return this.userService.createNewUser(initiator, body);
   }
 
   @ApiBearerAuth()
@@ -64,8 +66,8 @@ export class UserController {
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
   @UseInterceptors(StripperPasswordFromUserInterceptor)
   @Patch('/admin')
-  async adminUpdateHisPass(@UserId('id') adminId: string, @Body() body: UpdateUserDto): Promise<User> {
-    return this.userService.updateUser(adminId, body);
+  async adminUpdateHisPass(@ReqUser() initiator: UserJwtPayload, @Body() body: UpdateUserDto): Promise<User> {
+    return this.userService.updateUser(initiator, initiator.id, body);
   }
 
   @ApiBearerAuth()
@@ -74,8 +76,12 @@ export class UserController {
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.OPERATOR]))
   @UseInterceptors(StripperPasswordFromUserInterceptor)
   @Patch('/operator')
-  async resetPassword(@UserId('id') operatorId: string, @Body() body: OperatorUpdateOwnDto): Promise<User> {
-    return this.userService.updateUser(operatorId, body);
+  async resetPassword(
+    @UserId('id') operatorId: string,
+    @Body() body: OperatorUpdateOwnDto,
+    @ReqUser() initiator: UserJwtPayload,
+  ): Promise<User> {
+    return this.userService.updateUser(initiator, operatorId, body);
   }
 
   @ApiBearerAuth()
@@ -84,7 +90,11 @@ export class UserController {
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
   @UseInterceptors(StripperPasswordFromUserInterceptor)
   @Patch('/admin/:id')
-  async updateUser(@Param('id') id: string, @Body() body: UpdateUserDto): Promise<User> {
-    return this.userService.updateUser(id, body);
+  async updateUser(
+    @Param('id') id: string,
+    @Body() body: UpdateUserDto,
+    @ReqUser() initiator: UserJwtPayload,
+  ): Promise<User> {
+    return this.userService.updateUser(initiator, id, body);
   }
 }
