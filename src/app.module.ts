@@ -11,6 +11,7 @@ import { ScheduleModule } from './schedule/schedule.module';
 import { StatisticsModule } from './statistics/statistics.module';
 import { APP_PIPE } from '@nestjs/core';
 import { SystemSettingModule } from './system-settings/system-setting.module';
+import { AuditLogsModule } from './audit-logs/audit-logs.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { SystemSettingModule } from './system-settings/system-setting.module';
     AuthModule,
     StatisticsModule,
     SystemSettingModule,
+    AuditLogsModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env'],

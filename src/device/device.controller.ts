@@ -14,6 +14,8 @@ import { File } from '../file/file.schema';
 import { ControllerUpdateDeviceDto } from './dtos/controller.update.device.dto';
 import { RealIP } from 'nestjs-real-ip';
 import { PaginationRes } from '../utils/pagination.util';
+import { ReqUser } from '../auth/request.initiator.decorator';
+import { UserJwtPayload } from '../auth/user.jwt.type';
 
 @ApiTags('devices')
 @Controller('devices')
@@ -63,8 +65,12 @@ export class DeviceController {
   @ApiResponse({ status: 200, type: Device })
   @Patch('/admin/:id')
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
-  async updateDevice(@Param('id') id: string, @Body() body: UpdateDeviceDto): Promise<Device> {
-    return this.deviceService.updateDevice(id, body);
+  async updateDevice(
+    @Param('id') id: string,
+    @Body() body: UpdateDeviceDto,
+    @ReqUser() initiator: UserJwtPayload,
+  ): Promise<Device> {
+    return this.deviceService.updateDevice(initiator, id, body);
   }
 
   @ApiBearerAuth()
@@ -98,7 +104,11 @@ export class DeviceController {
   @ApiResponse({ status: 200 })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.CONTROLLER]))
   @Patch('/controller/:deviceId')
-  async disableDevice(@Param('deviceId') deviceId: string, @Body() body: ControllerUpdateDeviceDto): Promise<Device> {
-    return this.deviceService.updateDevice(deviceId, body);
+  async disableDevice(
+    @Param('deviceId') deviceId: string,
+    @Body() body: ControllerUpdateDeviceDto,
+    @ReqUser() initiator: UserJwtPayload,
+  ): Promise<Device> {
+    return this.deviceService.updateDevice(initiator, deviceId, body);
   }
 }

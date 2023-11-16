@@ -14,11 +14,12 @@ import { isDefined } from 'class-validator';
 import { GetSchedulesByAdminDto } from './dtos/get-schedules-by-admin.dto';
 import { Azan } from './azan.schema';
 import { AzanTypeEnum } from './enums/azan.type.enum';
-import { Moment } from 'moment';
-import { handleIPV6 } from 'src/utils/helper';
+import { handleIPV6, persianStringJoin } from 'src/utils/helper';
 import { SystemSettingService } from '../system-settings/system-setting.service';
 import { SystemSettingsEnum } from '../system-settings/enum/system-settings.enum';
 import paginate, { PaginationRes } from '../utils/pagination.util';
+import { AuditLogsService } from '../audit-logs/audit-logs.service';
+import { UserJwtPayload } from '../auth/user.jwt.type';
 
 @Injectable()
 export class ScheduleService {
@@ -31,6 +32,7 @@ export class ScheduleService {
     @Inject(forwardRef(() => DeviceService)) private deviceService: DeviceService,
     @Inject(forwardRef(() => StatisticsService)) private statisticsService: StatisticsService,
     @Inject(forwardRef(() => SystemSettingService)) private systemSettingService: SystemSettingService,
+    @Inject(forwardRef(() => AuditLogsService)) private auditLogsService: AuditLogsService,
   ) {}
 
   async getSchedules(query: GetSchedulesByAdminDto): Promise<PaginationRes> {
@@ -123,7 +125,11 @@ export class ScheduleService {
     });
     return { schedule, file };
   }
-  async createSchedule(operator: string, { deviceId, conductor, ...rest }: ScheduleBodyDto): Promise<Schedule> {
+  async createSchedule(
+    initiator: UserJwtPayload,
+    operator: string,
+    { deviceId, conductor, ...rest }: ScheduleBodyDto,
+  ): Promise<Schedule> {
     const device = await this.deviceService.getDevice({ _id: deviceId, operator });
     if (!device) {
       throw new NotFoundException(`دستگاه با شناسه ${deviceId} مربوط به اپراتور ${operator} پیدا نشد`);
@@ -170,8 +176,9 @@ export class ScheduleService {
         }
       });
     }
+
     //
-    return this.scheduleModel.create({
+    const schedule = await this.scheduleModel.create({
       device: deviceId,
       operator,
       ip: device.ip,
@@ -179,6 +186,13 @@ export class ScheduleService {
       conductor,
       ...rest,
     });
+    this.auditLogsService.log({
+      role: initiator.role,
+      initiatorId: initiator.id,
+      initiatorName: initiator.name,
+      description: persianStringJoin([' برنامه ', schedule.name, ' با شناسه', schedule._id.toString(), '  ایجاد شد ']),
+    });
+    return schedule;
   }
 
   async createAzanSchedule(date: string, start: string, type: AzanTypeEnum) {
@@ -204,11 +218,17 @@ export class ScheduleService {
     return this.scheduleModel.findOne({ operator, _id: id });
   }
 
-  async delete(operator: string, id: string): Promise<Schedule> {
-    const exists = await this.scheduleModel.findOne({ _id: id, operator });
+  async operatorDelete(initiator: UserJwtPayload, id: string): Promise<Schedule> {
+    const exists = await this.scheduleModel.findOne({ _id: id, operator: initiator.id });
     if (!exists) {
       throw new NotFoundException('برنامه مروبط به این اپراتور پیدا نشد');
     }
+    this.auditLogsService.log({
+      role: initiator.role,
+      initiatorId: initiator.id,
+      initiatorName: initiator.name,
+      description: persianStringJoin([' اپراتور برنامه ', exists.name, ' را پاک کرد']),
+    });
     return exists.remove();
   }
 
@@ -225,11 +245,17 @@ export class ScheduleService {
       azanDurationInSec: Number(azanDurationInSec?.value || 120),
     };
   }
-  async adminDelete(id: string): Promise<Schedule> {
+  async adminDelete(initiator: UserJwtPayload, id: string): Promise<Schedule> {
     const exists = await this.scheduleModel.findOne({ _id: id });
     if (!exists) {
       throw new NotFoundException('برنامه مروبط به این اپراتور پیدا نشد');
     }
+    this.auditLogsService.log({
+      role: initiator.role,
+      initiatorId: initiator.id,
+      initiatorName: initiator.name,
+      description: persianStringJoin([' ادمین برنامه ', exists.name, ' را پاک کرد']),
+    });
     return exists.remove();
   }
 }

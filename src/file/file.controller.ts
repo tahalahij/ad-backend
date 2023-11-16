@@ -33,6 +33,8 @@ import { IpAccessCheckGuard } from '../auth/ip.access.guard';
 import { PaginationQueryDto } from '../schedule/dtos/pagination.dto';
 import { GetFilesByAdminDto } from './dtos/get-files-by-admin.dto';
 import { PaginationRes } from '../utils/pagination.util';
+import { ReqUser } from '../auth/request.initiator.decorator';
+import { UserJwtPayload } from '../auth/user.jwt.type';
 
 function editFileName(req, file, callback) {
   const name = file.originalname.split('.')[0];
@@ -82,10 +84,10 @@ export class FileController {
   async uploadByOperator(
     @UploadedFile() file: Express.Multer.File,
     @Body() uploadBody: UploadDto,
-    @UserId() operatorId: string,
+    @ReqUser() initiator: UserJwtPayload,
   ) {
-    this.logger.log('upload file:', { file, operatorId, uploadBody });
-    const createdFile = await this.fileService.createFile(operatorId, file, uploadBody);
+    this.logger.log('upload file:', { file, operatorId: initiator.id, uploadBody });
+    const createdFile = await this.fileService.createFile(initiator, initiator.id, file, uploadBody);
     return { fileName: file.filename, id: createdFile._id };
   }
 
@@ -106,9 +108,10 @@ export class FileController {
     @UploadedFile() file: Express.Multer.File,
     @Body() uploadBody: UploadDto,
     @Param('operatorId') operatorId: string,
+    @ReqUser() initiator: UserJwtPayload,
   ) {
     this.logger.log('upload file:', { file, operatorId, uploadBody });
-    const createdFile = await this.fileService.createFile(operatorId, file, uploadBody);
+    const createdFile = await this.fileService.createFile(initiator, operatorId, file, uploadBody);
     return { fileName: file.filename, id: createdFile._id };
   }
 
@@ -131,8 +134,9 @@ export class FileController {
     @UploadedFiles()
     files: // new ParseFilePipe({ validators: [new FileTypeValidator({ fileType: 'csv' })] })
     Array<Express.Multer.File>,
+    @ReqUser() initiator: UserJwtPayload,
   ) {
-    await this.fileService.uploadAzanXlsx(files);
+    await this.fileService.uploadAzanXlsx(initiator, files);
     return { message: 'فایل ها با موفقیت اضافه شدند' };
   }
 
@@ -151,9 +155,9 @@ export class FileController {
       }),
     }),
   )
-  async uploadAzanFile(@UploadedFile() file: Express.Multer.File) {
+  async uploadAzanFile(@UploadedFile() file: Express.Multer.File, @ReqUser() initiator: UserJwtPayload) {
     this.logger.log('upload file:', { file });
-    await this.fileService.uploadAzanFile(file);
+    await this.fileService.uploadAzanFile(initiator, file);
     return { message: 'فایل اذان با موفقیت اپدیت شد' };
   }
 
@@ -162,8 +166,8 @@ export class FileController {
   @ApiResponse({ status: 200 })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.OPERATOR]))
   @Delete('/:fileId')
-  async delete(@Param('fileId') fileId: string, @UserId() adminId: string) {
-    return this.fileService.deleteFile(adminId, fileId);
+  async delete(@Param('fileId') fileId: string, @ReqUser() initiator: UserJwtPayload) {
+    return this.fileService.deleteFile(initiator, fileId);
   }
 
   @ApiBearerAuth()
@@ -171,8 +175,8 @@ export class FileController {
   @ApiResponse({ status: 200 })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN, RolesType.CONTROLLER]))
   @Delete('admin/:fileId')
-  async adminDeleteFile(@Param('fileId') fileId: string) {
-    return this.fileService.adminDeleteFile(fileId);
+  async adminDeleteFile(@Param('fileId') fileId: string, @ReqUser() initiator: UserJwtPayload) {
+    return this.fileService.adminDeleteFile(initiator, fileId);
   }
 
   @ApiBearerAuth()

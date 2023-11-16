@@ -12,6 +12,8 @@ import { PaginationQueryDto } from './dtos/pagination.dto';
 import { GetConductorsByAdminDto } from './dtos/get-conductors-by-admin.dto';
 import { AdminCreateConductorBodyDto } from './dtos/admin.create.conductor.body.dto';
 import { PaginationRes } from '../utils/pagination.util';
+import { ReqUser } from '../auth/request.initiator.decorator';
+import { UserJwtPayload } from '../auth/user.jwt.type';
 
 @ApiTags('conductors')
 @Controller('conductors')
@@ -23,8 +25,11 @@ export class ConductorController {
   @ApiResponse({ status: 200 })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.OPERATOR]))
   @Post('')
-  async createConductor(@UserId() adminId: string, @Body() conductorBody: ConductorBodyDto): Promise<Conductor> {
-    const conductor = await this.conductorService.create(adminId, conductorBody);
+  async createConductor(
+    @ReqUser() initiator: UserJwtPayload,
+    @Body() conductorBody: ConductorBodyDto,
+  ): Promise<Conductor> {
+    const conductor = await this.conductorService.create(initiator, initiator.id, conductorBody);
     return conductor;
   }
 
@@ -33,9 +38,12 @@ export class ConductorController {
   @ApiResponse({ status: 200 })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
   @Post('admin')
-  async adminCreateConductor(@Body() conductorBody: AdminCreateConductorBodyDto): Promise<Conductor> {
+  async adminCreateConductor(
+    @Body() conductorBody: AdminCreateConductorBodyDto,
+    @ReqUser() initiator: UserJwtPayload,
+  ): Promise<Conductor> {
     const { operatorId, ...rest } = conductorBody;
-    const conductor = await this.conductorService.create(operatorId, rest);
+    const conductor = await this.conductorService.create(initiator, operatorId, rest);
     return conductor;
   }
 
@@ -45,11 +53,11 @@ export class ConductorController {
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.OPERATOR]))
   @Patch('/:id')
   async updateConductor(
-    @Param('id') id: string,
-    @UserId() adminId: string,
+    @Param('id') conductorId: string,
+    @ReqUser() initiator: UserJwtPayload,
     @Body() conductorBody: ConductorBodyDto,
   ): Promise<Conductor> {
-    return this.conductorService.update(adminId, id, conductorBody);
+    return this.conductorService.update(initiator, initiator.id, conductorId, conductorBody);
   }
 
   @ApiBearerAuth()
@@ -57,8 +65,8 @@ export class ConductorController {
   @ApiResponse({ status: 200 })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.OPERATOR]))
   @Delete('/:id')
-  async delConductor(@Param('id') id: string, @UserId() adminId: string): Promise<Conductor> {
-    return this.conductorService.delete(adminId, id);
+  async delConductor(@Param('id') id: string, @ReqUser() initiator: UserJwtPayload): Promise<Conductor> {
+    return this.conductorService.delete(initiator, initiator.id, id);
   }
 
   @ApiBearerAuth()
@@ -66,8 +74,8 @@ export class ConductorController {
   @ApiResponse({ status: 200 })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN, RolesType.CONTROLLER]))
   @Delete('/admin/:id')
-  async adminDelConductor(@Param('id') id: string): Promise<Conductor> {
-    return this.conductorService.adminDelete(id);
+  async adminDelConductor(@Param('id') id: string, @ReqUser() initiator: UserJwtPayload): Promise<Conductor> {
+    return this.conductorService.adminDelete(initiator, id);
   }
 
   @ApiBearerAuth()

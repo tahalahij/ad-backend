@@ -5,3 +5,7 @@ export function handleIPV6(ip: string) {
 
   return ip;
 }
+
+export function persianStringJoin(arr: string[]): string {
+  return arr.join();
+}

@@ -1,15 +1,20 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Model } from 'mongoose';
-import { SystemSetting, SystemSettingDocument } from './system-setting.schema';
+import { SystemSetting } from './system-setting.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { SystemSettingsEnum } from './enum/system-settings.enum';
 import paginate, { PaginationRes } from '../utils/pagination.util';
-import { RolesType } from '../auth/role.type';
+import { AuditLogsService } from '../audit-logs/audit-logs.service';
+import { UserJwtPayload } from '../auth/user.jwt.type';
+import { persianStringJoin } from '../utils/helper';
 
 @Injectable()
 export class SystemSettingService {
   private logger = new Logger(SystemSettingService.name);
-  constructor(@InjectModel(SystemSetting.name) private systemSettingModel: Model<SystemSetting>) {}
+  constructor(
+    @InjectModel(SystemSetting.name) private systemSettingModel: Model<SystemSetting>,
+    @Inject(forwardRef(() => AuditLogsService)) private auditLogsService: AuditLogsService,
+  ) {}
 
   async getSystemSetting(name: SystemSettingsEnum): Promise<SystemSetting> {
     const systemSetting = await this.systemSettingModel.findOne({ name }).lean();
@@ -19,8 +24,15 @@ export class SystemSettingService {
     return systemSetting;
   }
 
-  async updateSystemSetting(id: string, value: string): Promise<SystemSetting> {
-    return this.systemSettingModel.findByIdAndUpdate(id, { value });
+  async updateSystemSetting(initiator: UserJwtPayload, id: string, value: string): Promise<SystemSetting> {
+    const setting = await this.systemSettingModel.findById(id);
+    this.auditLogsService.log({
+      role: initiator.role,
+      initiatorId: initiator.id,
+      initiatorName: initiator.name,
+      description: persianStringJoin([' ادمین تنظیمات', setting.name, '  را به مقدار ', setting.value, ' تغییر داد']),
+    });
+    return setting.update({ value });
   }
 
   async getSystemSettings(): Promise<PaginationRes> {
