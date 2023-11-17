@@ -16,7 +16,7 @@ export class SocketService {
         methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
       },
     });
-    this.io.on('connect', this.onConnect);
+    this.io.on('connect', this.onConnect.bind(this));
   }
 
   async onConnect(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>) {
