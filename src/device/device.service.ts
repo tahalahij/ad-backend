@@ -1,5 +1,5 @@
 import { BadRequestException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { Model } from 'mongoose';
+import { FilterQuery, Model } from 'mongoose';
 import { Device, DeviceDocument } from './device.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { CreateDeviceDto } from './dtos/create.device.dto';
@@ -73,7 +73,7 @@ export class DeviceService {
     });
   }
 
-  async getDevice(filter = {}): Promise<DeviceDocument> {
+  async getDevice(filter: FilterQuery<Device> = {}): Promise<DeviceDocument> {
     const device = await this.deviceModel.findOne(filter);
     if (!device) {
       throw new NotFoundException(`دستگاه پیدا نشد`);
