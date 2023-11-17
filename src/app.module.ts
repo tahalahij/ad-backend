@@ -12,6 +12,7 @@ import { StatisticsModule } from './statistics/statistics.module';
 import { APP_PIPE } from '@nestjs/core';
 import { SystemSettingModule } from './system-settings/system-setting.module';
 import { AuditLogsModule } from './audit-logs/audit-logs.module';
+import { SocketModule } from './socket/socket.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { AuditLogsModule } from './audit-logs/audit-logs.module';
     StatisticsModule,
     SystemSettingModule,
     AuditLogsModule,
+    SocketModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env'],

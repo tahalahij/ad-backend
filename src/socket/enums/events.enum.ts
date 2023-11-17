@@ -1,0 +1,9 @@
+export enum EventsEnum {
+  'ALL_ACTIVE_DEVICES' = 'ALL_ACTIVE_DEVICES',
+  'DEVICE_CONNECTED' = 'DEVICE_CONNECTED',
+  'DEVICE_DISCONNECTED' = 'DEVICE_DISCONNECTED',
+}
+
+export enum RoomsEnum {
+  'ALL' = 'ALL',
+}
