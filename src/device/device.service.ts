@@ -10,6 +10,10 @@ import { File } from '../file/file.schema';
 import { GetDevicesQueryDto } from './dtos/get.devices.query.dto';
 import { UserService } from '../user/user.service';
 import paginate, { PaginationRes } from '../utils/pagination.util';
+import { UserDocument } from '../user/user.schema';
+import { AuditLogsService } from '../audit-logs/audit-logs.service';
+import { persianStringJoin } from '../utils/helper';
+import { UserJwtPayload } from '../auth/user.jwt.type';
 
 @Injectable()
 export class DeviceService {
@@ -18,16 +22,23 @@ export class DeviceService {
 
     @Inject(forwardRef(() => UserService)) private userService: UserService,
     @Inject(forwardRef(() => ScheduleService)) private scheduleService: ScheduleService,
+    @Inject(forwardRef(() => AuditLogsService)) private auditLogsService: AuditLogsService,
   ) {}
 
   async createNewDevice(data: CreateDeviceDto): Promise<Device> {
-    await this.userService.getOperator(data.operatorId);
+    const operator = <UserDocument>await this.userService.getOperator(data.operatorId);
 
     const exists = await this.deviceModel.findOne({ ip: data.ip });
     if (exists) {
       throw new BadRequestException('دستگاه با این ایپی وجود دارد');
     }
 
+    this.auditLogsService.log({
+      role: operator.role,
+      initiatorId: operator._id,
+      initiatorName: operator.name,
+      description: persianStringJoin([' ایجاد دستگاه ', data.name]),
+    });
     return this.deviceModel.create({
       ...data,
       createdAt: new Date(),
@@ -35,13 +46,20 @@ export class DeviceService {
     });
   }
 
-  async updateDevice(id: string, updateObj: UpdateDeviceDto): Promise<Device> {
+  async updateDevice(initiator: UserJwtPayload, id: string, updateObj: UpdateDeviceDto): Promise<Device> {
+    const device = await this.deviceModel.findById(id);
     if (updateObj.ip) {
       const countSimilarIP = await this.deviceModel.count({ ip: updateObj.ip });
       if (countSimilarIP > 1) {
-        throw new BadRequestException('دستگاه با این ایپی وجود ندارد');
+        throw new BadRequestException('دستگاه با این ایپی وجود دارد');
       }
     }
+    this.auditLogsService.log({
+      role: initiator.role,
+      initiatorId: initiator.id,
+      initiatorName: initiator.name,
+      description: persianStringJoin([' اپدیت دستگاه ', device.name]),
+    });
     return this.deviceModel.findByIdAndUpdate(id, updateObj);
   }
 

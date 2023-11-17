@@ -1,7 +1,15 @@
-import { BadRequestException, Injectable, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  forwardRef,
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { UserLoginDto } from './dtos/user.login.dto';
 import { Model } from 'mongoose';
-import { User, UserDocument } from './user.schema';
+import { User } from './user.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { CryptoService } from './crypto.service';
 import { CONSTANTS } from './constants/constants';
@@ -11,6 +19,8 @@ import { UpdateUserDto } from './dtos/update.user.dto';
 import { CreateUserDto } from './dtos/create.user.dto';
 import { ConfigService } from '@nestjs/config';
 import paginate, { PaginationRes } from '../utils/pagination.util';
+import { AuditLogsService } from '../audit-logs/audit-logs.service';
+import { persianStringJoin } from '../utils/helper';
 
 @Injectable()
 export class UserService {
@@ -18,6 +28,7 @@ export class UserService {
   constructor(
     private CryptoService: CryptoService,
     @InjectModel(User.name) private userModel: Model<User>,
+    @Inject(forwardRef(() => AuditLogsService)) private auditLogsService: AuditLogsService,
     private readonly configService: ConfigService,
   ) {}
 
@@ -48,20 +59,28 @@ export class UserService {
     return {
       // the data that will be stored in JWT
       role: user.role,
-      id: user._id,
+      id: String(user._id),
       name: user.name,
     };
   }
-  async createNewUser(body: CreateUserDto): Promise<User> {
-    return this.userModel.create({
+  async createNewUser(initiator: UserJwtPayload, body: CreateUserDto): Promise<User> {
+    const user = await this.userModel.create({
       ...body,
       password: await this.CryptoService.hashPassword(body.password),
       createdAt: new Date(),
     });
+    this.auditLogsService.log({
+      role: initiator.role,
+      initiatorId: initiator.id,
+      initiatorName: initiator.name,
+      description: persianStringJoin([' کاربر جدید', user.name, ' را ایجاد کرد ']),
+    });
+
+    return user;
   }
 
-  async updateUser(id: string, updateObj: UpdateUserDto): Promise<User> {
-    const user = await this.userModel.findById(id);
+  async updateUser(initiator: UserJwtPayload, id: string, updateObj: UpdateUserDto): Promise<User> {
+    const user = await this.userModel.findById(initiator);
     if (updateObj.username) {
       const exists = await this.userModel.exists({ username: updateObj.username, _id: { $ne: id } });
       if (exists) {

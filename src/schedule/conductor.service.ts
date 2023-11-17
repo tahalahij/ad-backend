@@ -6,12 +6,16 @@ import { ConductorBodyDto } from './dtos/conductor.body.dto';
 import { GetConductorsByAdminDto } from './dtos/get-conductors-by-admin.dto';
 import { ScheduleService } from './schedule.service';
 import paginate, { PaginationRes } from '../utils/pagination.util';
+import { AuditLogsService } from '../audit-logs/audit-logs.service';
+import { persianStringJoin } from '../utils/helper';
+import { UserJwtPayload } from '../auth/user.jwt.type';
 
 @Injectable()
 export class ConductorService {
   private logger = new Logger(ConductorService.name);
   constructor(
     @InjectModel(Conductor.name) private conductorModel: Model<Conductor>,
+    @Inject(forwardRef(() => AuditLogsService)) private auditLogsService: AuditLogsService,
     private scheduleService: ScheduleService,
   ) {}
 
@@ -25,8 +29,15 @@ export class ConductorService {
     return paginate(this.conductorModel, filter, options);
   }
 
-  async create(operator: string, body: ConductorBodyDto): Promise<Conductor> {
-    return this.conductorModel.create({ operator, ...body, createdAt: new Date() });
+  async create(initiator: UserJwtPayload, operator: string, body: ConductorBodyDto): Promise<Conductor> {
+    const schedule = await this.conductorModel.create({ operator, ...body, createdAt: new Date() });
+    this.auditLogsService.log({
+      role: initiator.role,
+      initiatorId: initiator.id,
+      initiatorName: initiator.name,
+      description: persianStringJoin([' برنامه ایجاد شد', body.name, ' با شناسه', schedule._id.toString()]),
+    });
+    return schedule;
   }
 
   async hasFileBeenUsed(fileId: string): Promise<void> {
@@ -39,32 +50,56 @@ export class ConductorService {
     return null;
   }
 
-  async removeFileFromConductors(fileId: string | mongoose.Types.ObjectId): Promise<any> {
+  async removeFileFromConductors(initiator: UserJwtPayload, fileId: string): Promise<any> {
+    this.auditLogsService.log({
+      role: initiator.role,
+      initiatorId: initiator.id,
+      initiatorName: initiator.name,
+      description: persianStringJoin(['  فایل با شناسه', fileId, '  را از سری های پخش پاک کرد']),
+    });
     return this.conductorModel.updateMany({}, { $pull: { conductor: fileId } });
   }
 
-  async update(operator: string, id: string, body: ConductorBodyDto): Promise<Conductor> {
+  async update(initiator: UserJwtPayload, operator: string, id: string, body: ConductorBodyDto): Promise<Conductor> {
     const exists = await this.conductorModel.findOne({ _id: id, operator });
     if (!exists) {
       throw new NotFoundException('کنداکتور مربوط به این اپراتور نیست');
     }
+    this.auditLogsService.log({
+      role: initiator.role,
+      initiatorId: initiator.id,
+      initiatorName: initiator.name,
+      description: persianStringJoin(['  سری پخش ', exists.name, ' را اپدیت کرد']),
+    });
     return exists.update(body);
   }
 
-  async delete(operator: string, id: string): Promise<Conductor> {
+  async delete(initiator: UserJwtPayload, operator: string, id: string): Promise<Conductor> {
     const exists = await this.conductorModel.findOne({ _id: id, operator });
     if (!exists) {
       throw new NotFoundException('کنداکتور مربوط به این اپراتور نیست');
     }
     await this.scheduleService.hasConductorBeenUsed(id);
+    this.auditLogsService.log({
+      role: initiator.role,
+      initiatorId: initiator.id,
+      initiatorName: initiator.name,
+      description: persianStringJoin([' اپراتور سری پخش ', exists.name, ' را پاک کرد']),
+    });
     return exists.remove();
   }
-  async adminDelete(id: string): Promise<Conductor> {
+  async adminDelete(initiator: UserJwtPayload, id: string): Promise<Conductor> {
     const exists = await this.conductorModel.findOne({ _id: id });
     if (!exists) {
       throw new NotFoundException('کنداکتور وجود ندارد');
     }
     await this.scheduleService.hasConductorBeenUsed(id);
+    this.auditLogsService.log({
+      role: initiator.role,
+      initiatorId: initiator.id,
+      initiatorName: initiator.name,
+      description: persianStringJoin([' ادمین سری پخش ', exists.name, ' را پاک کرد']),
+    });
     return exists.remove();
   }
 }
