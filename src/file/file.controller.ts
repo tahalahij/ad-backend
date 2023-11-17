@@ -62,6 +62,7 @@ function adminDashboardPic(req, file, callback) {
 
   callback(null, newName);
 }
+
 @ApiTags('files')
 @Controller('files')
 export class FileController {
@@ -88,30 +89,6 @@ export class FileController {
   ) {
     this.logger.log('upload file:', { file, operatorId: initiator.id, uploadBody });
     const createdFile = await this.fileService.createFile(initiator, initiator.id, file, uploadBody);
-    return { fileName: file.filename, id: createdFile._id };
-  }
-
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'admin upload file on behalf of operator' })
-  @ApiResponse({ status: 200 })
-  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
-  @Post('admin/:operatorId/upload')
-  @UseInterceptors(
-    FileInterceptor('file', {
-      storage: diskStorage({
-        destination: './files',
-        filename: editFileNameForAdmin,
-      }),
-    }),
-  )
-  async uploadByAdmin(
-    @UploadedFile() file: Express.Multer.File,
-    @Body() uploadBody: UploadDto,
-    @Param('operatorId') operatorId: string,
-    @ReqUser() initiator: UserJwtPayload,
-  ) {
-    this.logger.log('upload file:', { file, operatorId, uploadBody });
-    const createdFile = await this.fileService.createFile(initiator, operatorId, file, uploadBody);
     return { fileName: file.filename, id: createdFile._id };
   }
 
@@ -192,7 +169,7 @@ export class FileController {
       }),
     }),
   )
-  async adminUploadDashboardPic(@UploadedFile() file: Express.Multer.File, @UserId() adminId: string) {
+  async adminUploadDashboardPic(@UploadedFile() file: Express.Multer.File) {
     return { message: 'عکس داشبورد با موفقیت اپدیت شد' };
   }
 
@@ -276,5 +253,29 @@ export class FileController {
   @Get('/')
   async adminGetFiles(@Query() queryDto: GetFilesByAdminDto): Promise<PaginationRes> {
     return this.fileService.getFilesByAdmin(queryDto);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'admin upload file on behalf of operator' })
+  @ApiResponse({ status: 200 })
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
+  @Post('admin/:operatorId/upload')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './files',
+        filename: editFileNameForAdmin,
+      }),
+    }),
+  )
+  async uploadByAdmin(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() uploadBody: UploadDto,
+    @Param('operatorId') operatorId: string,
+    @ReqUser() initiator: UserJwtPayload,
+  ) {
+    this.logger.log('upload file:', { file, operatorId, uploadBody });
+    const createdFile = await this.fileService.createFile(initiator, operatorId, file, uploadBody);
+    return { fileName: file.filename, id: createdFile._id };
   }
 }

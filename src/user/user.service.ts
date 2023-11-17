@@ -80,13 +80,19 @@ export class UserService {
   }
 
   async updateUser(initiator: UserJwtPayload, id: string, updateObj: UpdateUserDto): Promise<User> {
-    const user = await this.userModel.findById(initiator);
+    const user = await this.userModel.findById(id);
     if (updateObj.username) {
       const exists = await this.userModel.exists({ username: updateObj.username, _id: { $ne: id } });
       if (exists) {
         throw new BadRequestException('اپراتور با این نام کاربری وجود دارد');
       }
     }
+    this.auditLogsService.log({
+      role: initiator.role,
+      initiatorId: initiator.id,
+      initiatorName: initiator.name,
+      description: persianStringJoin(['اپدیت کاربر', user.name, 'تغییرات : ', ...Object.keys(updateObj)]),
+    });
     if (updateObj.password) {
       updateObj.password = await this.CryptoService.hashPassword(updateObj.password);
     }
