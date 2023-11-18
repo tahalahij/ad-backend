@@ -37,6 +37,7 @@ import { ReqUser } from '../auth/request.initiator.decorator';
 import { UserJwtPayload } from '../auth/user.jwt.type';
 
 function editFileName(req, file, callback) {
+  file.originalname = Buffer.from(file.originalname, 'latin1').toString('utf8');
   const name = file.originalname.split('.')[0];
   const userId = req.user.id;
   const extension = extname(file.originalname);
@@ -47,6 +48,7 @@ function editFileName(req, file, callback) {
 }
 
 function editFileNameForAdmin(req, file, callback) {
+  file.originalname = Buffer.from(file.originalname, 'latin1').toString('utf8');
   const name = file.originalname.split('.')[0];
   const userId = req.params.operatorId;
   const extension = extname(file.originalname);
