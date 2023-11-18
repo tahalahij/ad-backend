@@ -16,7 +16,7 @@ export class SocketService {
         methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
       },
     });
-    this.io.on('connect', this.onConnect);
+    this.io.on('connect', this.onConnect.bind(this));
   }
 
   async onConnect(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>) {
@@ -35,19 +35,21 @@ export class SocketService {
       // admin, controller or operator
       socket.join(RoomsEnum.ALL);
       const sockets = await this.io.sockets.fetchSockets();
-      const activeDevices = sockets
-        .map(async (s) => {
+      const activeDevices = await Promise.all(
+        sockets.map(async (s) => {
           const device = await this.deviceService
             .getDevice({
               ip: handleIPV6(s?.handshake?.address),
             })
             .catch((e) => null);
           return device;
-        })
-        .filter((d) => d !== null)
-        .map((d) => d['_id']);
+        }),
+      );
       this.logger.log('admin, controller or operator connected and activeDevices sent', { activeDevices });
-      socket.emit(EventsEnum.ALL_ACTIVE_DEVICES, { activeDevices });
+      const activeDevicesIds = activeDevices.filter((d) => d !== null).map((d) => d['_id']);
+
+      this.logger.log('activeDevices sending', { activeDevicesIds });
+      socket.emit(EventsEnum.ALL_ACTIVE_DEVICES, { activeDevices: activeDevicesIds });
     }
 
     socket.on('disconnect', () => {
