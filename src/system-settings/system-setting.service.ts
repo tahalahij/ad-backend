@@ -48,11 +48,33 @@ export class SystemSettingService {
   }
 
   async seedSystemSetting() {
-    const admin = await this.systemSettingModel.create({
-      createdAt: new Date(),
-      name: SystemSettingsEnum.FILE_SIZE_LIMIT_IN_MEGA_BYTE,
-      value: 100,
-    });
-    this.logger.log('seedSystemSetting successful', { admin });
+    const settings = await Promise.all([
+      this.systemSettingModel.findOneAndUpdate(
+        {
+          name: SystemSettingsEnum.FILE_SIZE_LIMIT_IN_MEGA_BYTE,
+        },
+        {
+          value: 100,
+          createdAt: new Date(),
+        },
+
+        {
+          upsert: true,
+        },
+      ),
+      this.systemSettingModel.findOneAndUpdate(
+        {
+          name: SystemSettingsEnum.FILE_UPLOAD_LIMIT_PER_DAY,
+        },
+        {
+          value: 10,
+          createdAt: new Date(),
+        },
+        {
+          upsert: true,
+        },
+      ),
+    ]);
+    this.logger.log('seedSystemSetting successful', { settings });
   }
 }
