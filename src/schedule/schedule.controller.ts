@@ -26,7 +26,7 @@ export class ScheduleController {
   @ApiResponse({ status: 200 })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.OPERATOR]))
   @Post('')
-  async createSchedule(@ReqUser() initiator: UserJwtPayload, @Body() scheduleBody: ScheduleBodyDto): Promise<Schedule> {
+  async createSchedule(@ReqUser() initiator: UserJwtPayload, @Body() scheduleBody: ScheduleBodyDto): Promise<Schedule[]> {
     const schedule = await this.scheduleService.createSchedule(initiator, initiator.id, scheduleBody);
     return schedule;
   }
@@ -40,7 +40,7 @@ export class ScheduleController {
     @Param('operatorId') operatorId: string,
     @Body() scheduleBody: ScheduleBodyDto,
     @ReqUser() initiator: UserJwtPayload,
-  ): Promise<Schedule> {
+  ): Promise<Schedule[]> {
     const schedule = await this.scheduleService.createSchedule(initiator, operatorId, scheduleBody);
     return schedule;
   }
