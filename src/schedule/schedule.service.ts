@@ -14,7 +14,7 @@ import { isDefined } from 'class-validator';
 import { GetSchedulesByAdminDto } from './dtos/get-schedules-by-admin.dto';
 import { Azan } from './azan.schema';
 import { AzanTypeEnum } from './enums/azan.type.enum';
-import { handleIPV6, persianStringJoin } from 'src/utils/helper';
+import { handleIPV6, likeRegx, persianStringJoin } from 'src/utils/helper';
 import { SystemSettingService } from '../system-settings/system-setting.service';
 import { SystemSettingsEnum } from '../system-settings/enum/system-settings.enum';
 import paginate, { PaginationRes } from '../utils/pagination.util';
@@ -42,6 +42,14 @@ export class ScheduleService {
     }
     if (query.deviceId) {
       where.device = query.deviceId;
+    }
+
+    if (query.name) {
+      where.name = likeRegx(query.name);
+    }
+
+    if (query.ip) {
+      where.ip = likeRegx(query.ip);
     }
     return paginate(this.scheduleModel, where, {
       populates: ['operator', 'conductor', 'device'],

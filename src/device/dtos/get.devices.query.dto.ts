@@ -3,17 +3,17 @@ import { IsOptional, IsString } from 'class-validator';
 import { PaginationQueryDto } from '../../schedule/dtos/pagination.dto';
 
 export class GetDevicesQueryDto extends PaginationQueryDto {
-  @ApiPropertyOptional({ example: 'monitor 1' })
+  @ApiPropertyOptional({ example: 'monitor 1, searchable' })
   @IsString()
   @IsOptional()
   name?: string;
 
-  @ApiPropertyOptional({ example: 'monitor 1' })
+  @ApiPropertyOptional({ example: 'monitor 1, searchable' })
   @IsString()
   @IsOptional()
   ip?: string;
 
-  @ApiPropertyOptional({ example: '123213' })
+  @ApiPropertyOptional({ example: '123213, searchable' })
   @IsString()
   @IsOptional()
   mac?: string;

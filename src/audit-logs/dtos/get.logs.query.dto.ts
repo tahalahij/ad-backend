@@ -13,4 +13,14 @@ export class GetAuditLogsQueryDto extends PaginationQueryDto {
   @IsString()
   @IsOptional()
   initiatorId?: string;
+
+  @ApiPropertyOptional({ example: 'admin name', description: 'searchable' })
+  @IsString()
+  @IsOptional()
+  initiatorName?: string;
+
+  @ApiPropertyOptional({ example: 'admin updated dashboard pic', description: 'searchable' })
+  @IsString()
+  @IsOptional()
+  description?: string;
 }

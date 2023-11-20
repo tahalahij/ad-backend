@@ -7,7 +7,6 @@ import { ConductorBodyDto } from './dtos/conductor.body.dto';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { RoleAccessCheck } from '../auth/role.access.guard';
 import { RolesType } from '../auth/role.type';
-import mongoose from 'mongoose';
 import { PaginationQueryDto } from './dtos/pagination.dto';
 import { GetConductorsByAdminDto } from './dtos/get-conductors-by-admin.dto';
 import { AdminCreateConductorBodyDto } from './dtos/admin.create.conductor.body.dto';

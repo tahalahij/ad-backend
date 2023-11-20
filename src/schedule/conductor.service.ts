@@ -7,7 +7,7 @@ import { GetConductorsByAdminDto } from './dtos/get-conductors-by-admin.dto';
 import { ScheduleService } from './schedule.service';
 import paginate, { PaginationRes } from '../utils/pagination.util';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
-import { persianStringJoin } from '../utils/helper';
+import { likeRegx, persianStringJoin } from '../utils/helper';
 import { UserJwtPayload } from '../auth/user.jwt.type';
 
 @Injectable()
@@ -20,11 +20,15 @@ export class ConductorService {
   ) {}
 
   async getOperatorsConductors(query: GetConductorsByAdminDto): Promise<PaginationRes> {
-    const { operator, ...options } = query;
+    const { operator, name, ...options } = query;
 
     const filter: any = {};
     if (operator) {
       filter.operator = operator;
+    }
+
+    if (name) {
+      filter.name = likeRegx(name);
     }
     return paginate(this.conductorModel, filter, options);
   }

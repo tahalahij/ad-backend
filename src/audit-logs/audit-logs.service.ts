@@ -1,11 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Model } from 'mongoose';
+import { FilterQuery, Model } from 'mongoose';
 import { AuditLog } from './audit-logs.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import paginate, { PaginationRes } from '../utils/pagination.util';
 import { RolesType } from '../auth/role.type';
 import { GetAuditLogsQueryDto } from './dtos/get.logs.query.dto';
 import { OrderEnum } from '../schedule/enums/order.enum';
+import { Device } from '../device/device.schema';
+import { likeRegx } from '../utils/helper';
 
 @Injectable()
 export class AuditLogsService {
@@ -21,18 +23,33 @@ export class AuditLogsService {
     return this.auditLoggModel.create({ ...data, createdAt: new Date() });
   }
 
-  async getLogs({ _sort, _order, limit, page, ...rest }: GetAuditLogsQueryDto): Promise<PaginationRes> {
-    if (!_sort) {
-      _sort = 'createdAt';
+  async getLogs({
+    initiatorName,
+    description,
+    initiatorId,
+    role,
+    ...rest
+  }: GetAuditLogsQueryDto): Promise<PaginationRes> {
+    if (!rest?._sort) {
+      rest._sort = 'createdAt';
     }
-    if (!_order) {
-      _order = OrderEnum.DESC;
+    if (!rest?._order) {
+      rest._order = OrderEnum.DESC;
     }
-    return paginate(this.auditLoggModel, rest, {
-      page,
-      limit,
-      _sort,
-      _order,
-    });
+    const filter: FilterQuery<AuditLog> = {};
+    if (initiatorName) {
+      filter.initiatorName = likeRegx(initiatorName);
+    }
+    if (description) {
+      filter.description = likeRegx(description);
+    }
+    if (initiatorId) {
+      filter.initiatorId = initiatorId;
+    }
+    if (role) {
+      filter.role = role;
+    }
+
+    return paginate(this.auditLoggModel, filter, rest);
   }
 }

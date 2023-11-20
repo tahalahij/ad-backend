@@ -47,8 +47,11 @@ export class DeviceController {
   @ApiResponse({ status: 200, type: Device })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.OPERATOR]))
   @Get('/')
-  async getOperatorsDevices(@UserId() operatorId: string): Promise<PaginationRes> {
-    return this.deviceService.getDevices({ operatorId });
+  async getOperatorsDevices(
+    @UserId() operatorId: string,
+    @Query() queryDto: GetDevicesQueryDto,
+  ): Promise<PaginationRes> {
+    return this.deviceService.getDevices({ operatorId, ...queryDto });
   }
 
   @ApiBearerAuth()
@@ -100,7 +103,7 @@ export class DeviceController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Controller admin disables/enables device' })
+  @ApiOperation({ summary: 'Controller disables/enables device' })
   @ApiResponse({ status: 200 })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.CONTROLLER]))
   @Patch('/controller/:deviceId')

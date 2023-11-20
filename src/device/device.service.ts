@@ -10,10 +10,11 @@ import { File } from '../file/file.schema';
 import { GetDevicesQueryDto } from './dtos/get.devices.query.dto';
 import { UserService } from '../user/user.service';
 import paginate, { PaginationRes } from '../utils/pagination.util';
-import { UserDocument } from '../user/user.schema';
+import { User, UserDocument } from '../user/user.schema';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
-import { persianStringJoin } from '../utils/helper';
+import { likeRegx, persianStringJoin } from '../utils/helper';
 import { UserJwtPayload } from '../auth/user.jwt.type';
+import { RolesType } from '../auth/role.type';
 
 @Injectable()
 export class DeviceService {
@@ -63,13 +64,26 @@ export class DeviceService {
     return this.deviceModel.findByIdAndUpdate(id, updateObj);
   }
 
-  async getDevices({ _sort, _order, limit, page, ...rest }: GetDevicesQueryDto): Promise<PaginationRes> {
-    return paginate(this.deviceModel, rest, {
+  async getDevices({ name, operatorId, ip, mac, ...rest }: GetDevicesQueryDto): Promise<PaginationRes> {
+    const filter: FilterQuery<Device> = {};
+    if (operatorId) {
+      filter.operatorId = operatorId;
+    }
+
+    if (name) {
+      filter.name = likeRegx(name);
+    }
+
+    if (mac) {
+      filter.mac = likeRegx(mac);
+    }
+
+    if (ip) {
+      filter.ip = likeRegx(ip);
+    }
+    return paginate(this.deviceModel, filter, {
       populates: ['operatorId'],
-      page,
-      limit,
-      _sort,
-      _order,
+      ...rest,
     });
   }
 
