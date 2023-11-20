@@ -8,7 +8,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { UserLoginDto } from './dtos/user.login.dto';
-import { Model } from 'mongoose';
+import { FilterQuery, Model } from 'mongoose';
 import { User } from './user.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { CryptoService } from './crypto.service';
@@ -20,7 +20,9 @@ import { CreateUserDto } from './dtos/create.user.dto';
 import { ConfigService } from '@nestjs/config';
 import paginate, { PaginationRes } from '../utils/pagination.util';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
-import { persianStringJoin } from '../utils/helper';
+import { likeRegx, persianStringJoin } from '../utils/helper';
+import { GetUsersQueryDto } from './dtos/get.users.query.dto';
+import { filter } from 'rxjs';
 
 @Injectable()
 export class UserService {
@@ -32,8 +34,24 @@ export class UserService {
     private readonly configService: ConfigService,
   ) {}
 
-  public async getOperators(): Promise<PaginationRes> {
-    return paginate(this.userModel, { role: RolesType.OPERATOR }, {});
+  public async getOperators({ mac, name, ip, username, ...rest }: GetUsersQueryDto): Promise<PaginationRes> {
+    const filter: FilterQuery<User> = { role: RolesType.OPERATOR };
+    if (username) {
+      filter.username = likeRegx(username);
+    }
+
+    if (name) {
+      filter.name = likeRegx(name);
+    }
+
+    if (mac) {
+      filter.mac = likeRegx(mac);
+    }
+
+    if (ip) {
+      filter.ip = likeRegx(ip);
+    }
+    return paginate(this.userModel, filter, rest);
   }
 
   public async getOperator(id: string): Promise<User> {
@@ -44,8 +62,24 @@ export class UserService {
     return user;
   }
 
-  public async getControllers(): Promise<PaginationRes> {
-    return paginate(this.userModel, { role: RolesType.CONTROLLER }, {});
+  public async getControllers({ mac, name, ip, username, ...rest }: GetUsersQueryDto): Promise<PaginationRes> {
+    const filter: FilterQuery<User> = { role: RolesType.CONTROLLER };
+    if (username) {
+      filter.username = likeRegx(username);
+    }
+
+    if (name) {
+      filter.name = likeRegx(name);
+    }
+
+    if (mac) {
+      filter.mac = likeRegx(mac);
+    }
+
+    if (ip) {
+      filter.ip = likeRegx(ip);
+    }
+    return paginate(this.userModel, filter, rest);
   }
   public async validateUser({ username, password }: UserLoginDto): Promise<UserJwtPayload> {
     const user = await this.userModel.findOne({ username });

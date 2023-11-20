@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards, UseInterceptors } from '@nestjs/common';
 import { UserService } from './user.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -14,6 +14,7 @@ import { PaginationRes } from '../utils/pagination.util';
 import { StripperPasswordFromUserInterceptor } from './interceptors/stripper.password.from.user.interceptor';
 import { ReqUser } from '../auth/request.initiator.decorator';
 import { UserJwtPayload } from '../auth/user.jwt.type';
+import { GetUsersQueryDto } from './dtos/get.users.query.dto';
 
 @ApiTags('users')
 @Controller('users')
@@ -26,8 +27,8 @@ export class UserController {
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN, RolesType.CONTROLLER]))
   @UseInterceptors(StripperPasswordFromUserInterceptor)
   @Get('/admin/operators')
-  async getOperators(): Promise<PaginationRes> {
-    return this.userService.getOperators();
+  async getOperators(@Query() query: GetUsersQueryDto): Promise<PaginationRes> {
+    return this.userService.getOperators(query);
   }
 
   @ApiBearerAuth()
@@ -46,8 +47,8 @@ export class UserController {
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
   @UseInterceptors(StripperPasswordFromUserInterceptor)
   @Get('/admin/controllers')
-  async getControllers(): Promise<PaginationRes> {
-    return this.userService.getControllers();
+  async getControllers(@Query() query: GetUsersQueryDto): Promise<PaginationRes> {
+    return this.userService.getControllers(query);
   }
 
   @ApiBearerAuth()
