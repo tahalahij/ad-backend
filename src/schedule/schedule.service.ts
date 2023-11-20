@@ -20,6 +20,7 @@ import { SystemSettingsEnum } from '../system-settings/enum/system-settings.enum
 import paginate, { PaginationRes } from '../utils/pagination.util';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { UserJwtPayload } from '../auth/user.jwt.type';
+import { Device } from '../device/device.schema';
 
 @Injectable()
 export class ScheduleService {
@@ -136,71 +137,90 @@ export class ScheduleService {
   async createSchedule(
     initiator: UserJwtPayload,
     operator: string,
-    { deviceId, conductor, ...rest }: ScheduleBodyDto,
-  ): Promise<Schedule> {
-    const device = await this.deviceService.getDevice({ _id: deviceId, operator });
-    if (!device) {
-      throw new NotFoundException(`دستگاه با شناسه ${deviceId} مربوط به اپراتور ${operator} پیدا نشد`);
-    }
-    const exists = await this.conductorModel.exists({ _id: conductor, operator });
-    if (!exists) {
-      throw new NotFoundException(`کنداکتور با شناسه ${conductor} مربوط به اپراتور ${operator} پیدا نشد`);
-    }
-    if (rest.type === ScheduleTypeEnum.RECURSIVE) {
-      const recursives = await this.scheduleModel
-        .find({ type: ScheduleTypeEnum.RECURSIVE, device: device.id, operator })
-        .lean();
-      recursives.forEach((r) => {
-        const intersectDays = r.day.filter((day) => rest.day.includes(day));
-        if (intersectDays.length) {
-          const from = moment().hour(rest.from.hour).minute(rest.from.minute).unix();
-          const to = moment().hour(rest.to.hour).minute(rest.to.minute).unix();
-          const recursiveFrom = moment().hour(r.from.hour).minute(r.from.minute).unix();
-          const recursiveTo = moment().hour(r.to.hour).minute(r.to.minute).unix();
-          const maxOfStarts = Math.max(from, recursiveFrom);
-          const minOfEnds = Math.min(to, recursiveTo);
-          if (maxOfStarts < minOfEnds) {
-            const message = ` برنامه ${r.name} با این برنامه در روزهای ${intersectDays}تداخل دارد `;
-            throw new BadRequestException(message);
-          }
+    { deviceIds, conductor, ...rest }: ScheduleBodyDto,
+  ): Promise<Schedule[]> {
+    const devices: Device[] = [];
+    await Promise.all(
+      deviceIds.map(async (deviceId) => {
+        const device = await this.deviceService.getDevice({ _id: deviceId, operator });
+        if (!device) {
+          throw new NotFoundException(`دستگاه با شناسه ${deviceId} مربوط به اپراتور ${operator} پیدا نشد`);
         }
-      });
-    } else {
-      // one time
-      const oneTimes = await this.scheduleModel.find({
-        type: ScheduleTypeEnum.ONE_TIME,
-        device: device.id,
-        operator,
-      });
-      oneTimes.forEach((ot: any) => {
-        const start = moment(rest.start);
-        const end = moment(rest.end);
-        const startOverlap = start.isBetween(moment(ot.start), moment(ot.end));
-        const endOverlap = end.isBetween(moment(ot.start), moment(ot.end));
+        const deviceMsg = persianStringJoin([' برای دستگاه', device.name]);
+        devices.push(device);
 
-        if (startOverlap || endOverlap) {
-          const message = ` برنامه ${ot.name} با این برنامه تداخل دارد`;
-          throw new BadRequestException(message);
+        const exists = await this.conductorModel.exists({ _id: conductor, operator });
+        if (!exists) {
+          throw new NotFoundException(
+            `کنداکتور با شناسه ${conductor} مربوط به اپراتور ${operator} پیدا نشد` + deviceMsg,
+          );
         }
-      });
-    }
+        if (rest.type === ScheduleTypeEnum.RECURSIVE) {
+          const recursives = await this.scheduleModel
+            .find({ type: ScheduleTypeEnum.RECURSIVE, device: device.id, operator })
+            .lean();
+          recursives.forEach((r) => {
+            const intersectDays = r.day.filter((day) => rest.day.includes(day));
+            if (intersectDays.length) {
+              const from = moment().hour(rest.from.hour).minute(rest.from.minute).unix();
+              const to = moment().hour(rest.to.hour).minute(rest.to.minute).unix();
+              const recursiveFrom = moment().hour(r.from.hour).minute(r.from.minute).unix();
+              const recursiveTo = moment().hour(r.to.hour).minute(r.to.minute).unix();
+              const maxOfStarts = Math.max(from, recursiveFrom);
+              const minOfEnds = Math.min(to, recursiveTo);
+              if (maxOfStarts < minOfEnds) {
+                const message = ` برنامه ${r.name} با این برنامه در روزهای ${intersectDays}تداخل دارد ` + deviceMsg;
+                throw new BadRequestException(message);
+              }
+            }
+          });
+        } else {
+          // one time
+          const oneTimes = await this.scheduleModel.find({
+            type: ScheduleTypeEnum.ONE_TIME,
+            device: device.id,
+            operator,
+          });
+          oneTimes.forEach((ot: any) => {
+            const start = moment(rest.start);
+            const end = moment(rest.end);
+            const startOverlap = start.isBetween(moment(ot.start), moment(ot.end));
+            const endOverlap = end.isBetween(moment(ot.start), moment(ot.end));
 
-    //
-    const schedule = await this.scheduleModel.create({
-      device: deviceId,
-      operator,
-      ip: device.ip,
-      createdAt: new Date(),
-      conductor,
-      ...rest,
-    });
-    this.auditLogsService.log({
-      role: initiator.role,
-      initiatorId: initiator.id,
-      initiatorName: initiator.name,
-      description: persianStringJoin([' برنامه ', schedule.name, ' با شناسه', schedule._id.toString(), '  ایجاد شد ']),
-    });
-    return schedule;
+            if (startOverlap || endOverlap) {
+              const message = ` برنامه ${ot.name} با این برنامه تداخل دارد` + deviceMsg;
+              throw new BadRequestException(message);
+            }
+          });
+        }
+      }),
+    );
+
+    return await Promise.all(
+      devices.map(async (device) => {
+        const schedule = await this.scheduleModel.create({
+          device: device['_id'],
+          operator,
+          ip: device.ip,
+          createdAt: new Date(),
+          conductor,
+          ...rest,
+        });
+        this.auditLogsService.log({
+          role: initiator.role,
+          initiatorId: initiator.id,
+          initiatorName: initiator.name,
+          description: persianStringJoin([
+            ' برنامه ',
+            schedule.name,
+            ' با شناسه',
+            schedule._id.toString(),
+            '  ایجاد شد ',
+          ]),
+        });
+        return schedule;
+      }),
+    );
   }
 
   async createAzanSchedule(date: string, start: string, type: AzanTypeEnum) {

@@ -34,10 +34,10 @@ export class ScheduleBodyDto {
   @IsNotEmpty()
   name: string;
 
-  @ApiProperty({ example: '644550b75d9d22cbc8055c71', description: 'deviceId' })
-  @IsString()
-  @IsNotEmpty()
-  deviceId: string;
+  @ApiProperty({ example: '[644550b75d9d22cbc8055c71]', description: 'deviceIds' })
+  @IsArray()
+  @IsString({ each: true })
+  deviceIds: string[];
 
   @ApiProperty({
     example: ScheduleTypeEnum.ONE_TIME,
