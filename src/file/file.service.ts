@@ -30,17 +30,22 @@ import paginate, { PaginationRes } from '../utils/pagination.util';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { UserJwtPayload } from '../auth/user.jwt.type';
 import { persianStringJoin } from '../utils/helper';
+import * as os from 'os';
+import { PanelFilesNameEnum } from './enums/panel.files.name.enum';
 
 @Injectable()
 export class FileService {
   private logger = new Logger(FileService.name);
+  private rootDir = os.platform() === 'linux' ? '/temp/samand' : process.cwd();
   constructor(
     @InjectModel(File.name) private fileModel: Model<File>,
     @Inject(forwardRef(() => ConductorService)) private conductorService: ConductorService,
     @Inject(forwardRef(() => ScheduleService)) private scheduleService: ScheduleService,
     @Inject(forwardRef(() => AuditLogsService)) private auditLogsService: AuditLogsService,
     private systemSettingService: SystemSettingService,
-  ) {}
+  ) {
+    this.logger.log(' محل ذخیره سازی فایلها:', this.rootDir);
+  }
 
   async createFile(
     initiator: UserJwtPayload,
@@ -73,7 +78,7 @@ export class FileService {
   }
 
   async uploadAzanXlsx(initiator: UserJwtPayload, files: Express.Multer.File[]): Promise<void> {
-    const dir = process.cwd() + '/temp/'; // files are stored in temp directory
+    const dir = this.rootDir + '/temp/'; // files are stored in temp directory
     const range = {
       start: null,
       end: null,
@@ -108,7 +113,7 @@ export class FileService {
   }
 
   async uploadAzanFile(initiator: UserJwtPayload, file: Express.Multer.File): Promise<void> {
-    const dir = process.cwd() + '/files/azan/'; // files are stored in temp directory
+    const dir = this.rootDir + '/files/azan/'; // files are stored in temp directory
     for (const fileName of fs.readdirSync(dir)) {
       // remove prevoius files
       if (fileName !== file.filename) {
@@ -165,7 +170,7 @@ export class FileService {
     if (!file) {
       throw new NotFoundException('فایل پیدا نشد');
     }
-    fs.unlink(join(process.cwd(), file.path), (param) => {
+    fs.unlink(join(this.rootDir, file.path), (param) => {
       this.logger.log('remove file', { param });
     });
     await this.conductorService.removeFileFromConductors(initiator, String(file._id));
@@ -184,7 +189,7 @@ export class FileService {
       throw new NotFoundException('فایل پیدا نشد');
     }
     await this.conductorService.hasFileBeenUsed(fileId);
-    fs.unlink(join(process.cwd(), file.path), (param) => {
+    fs.unlink(join(this.rootDir, file.path), (param) => {
       this.logger.log('remove file', { param });
     });
     await this.conductorService.removeFileFromConductors(initiator, String(file._id));
@@ -199,7 +204,7 @@ export class FileService {
   }
 
   getAzanType(): string {
-    const azanDir = join(process.cwd(), '/files/azan/');
+    const azanDir = join(this.rootDir, '/files/azan/');
     const fileNames = fs.readdirSync(azanDir);
     if (!fileNames.length) {
       throw new BadRequestException('فایل اذان اپلود نشده است');
@@ -207,11 +212,11 @@ export class FileService {
     return lookup(fileNames[0]);
   }
   fileBuffer(fileName: string): Buffer.Buffer {
-    return readFileSync(join(process.cwd(), `/files/${fileName}`));
+    return readFileSync(join(this.rootDir, `/files/${fileName}`));
   }
 
   downloadAzan(): StreamableFile {
-    const azanDir = join(process.cwd(), '/files/azan/');
+    const azanDir = join(this.rootDir, '/files/azan/');
     const fileNames = fs.readdirSync(azanDir);
     if (!fileNames.length) {
       throw new BadRequestException('فایل اذان اپلود نشده است');
@@ -220,18 +225,18 @@ export class FileService {
     return new StreamableFile(stream);
   }
 
-  dashboard(): StreamableFile {
-    const files = readdirSync(join(process.cwd(), `/public`));
-    let name = 'dashboard_default.jpg';
+  downloadPanelFile(fileName: PanelFilesNameEnum): StreamableFile {
+    const files = readdirSync(join(this.rootDir, `/public`));
+    let name = `${fileName}_default.png`;
     if (files.length > 1) {
       name = files.find((f) => f !== name);
     }
-    const stream = createReadStream(join(process.cwd(), '/public', name));
+    const stream = createReadStream(join(this.rootDir, '/public', name));
     return new StreamableFile(stream);
   }
 
   fileStream(fileName: string): StreamableFile {
-    const stream = createReadStream(join(process.cwd(), `/files/${fileName}`));
+    const stream = createReadStream(join(this.rootDir, `/files/${fileName}`));
     return new StreamableFile(stream);
   }
 }

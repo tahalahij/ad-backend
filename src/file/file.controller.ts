@@ -35,7 +35,21 @@ import { GetFilesByAdminDto } from './dtos/get-files-by-admin.dto';
 import { PaginationRes } from '../utils/pagination.util';
 import { ReqUser } from '../auth/request.initiator.decorator';
 import { UserJwtPayload } from '../auth/user.jwt.type';
+import { persianStringJoin } from '../utils/helper';
+import { PanelFileNameParamDto } from './dtos/panel.file.name.param.dto';
+import os from 'os';
 
+function fileFilter(req, file, callback) {
+  const extension = extname(file.originalname);
+  const acceptedFormats = ['.png', '.jpg', '.jpeg', '.mp3', '.mp4'];
+  if (!acceptedFormats.includes(extension)) {
+    return callback(
+      new Error(persianStringJoin(['فقط فایلها با فرمت های', acceptedFormats.join(), ' قابل اپلود هستند'])),
+      false,
+    );
+  }
+  callback(null, true);
+}
 function editFileName(req, file, callback) {
   file.originalname = Buffer.from(file.originalname, 'latin1').toString('utf8');
   const name = file.originalname.split('.')[0];
@@ -58,13 +72,14 @@ function editFileNameForAdmin(req, file, callback) {
   callback(null, newName);
 }
 
-function adminDashboardPic(req, file, callback) {
+function adminPanelfileUpload(req, file, callback) {
   const extension = extname(file.originalname);
-  const newName = `dashboard${extension}`;
+  const newName = `${req.params.fileName}${extension}`;
 
   callback(null, newName);
 }
 
+const rootDir = os.platform() === 'linux' ? '/temp/samand' : process.cwd();
 @ApiTags('files')
 @Controller('files')
 export class FileController {
@@ -79,9 +94,10 @@ export class FileController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: './files',
+        destination: rootDir + './files',
         filename: editFileName,
       }),
+      fileFilter,
     }),
   )
   async uploadByOperator(
@@ -102,11 +118,19 @@ export class FileController {
   @UseInterceptors(
     FilesInterceptor('file', 10, {
       storage: diskStorage({
-        destination: './temp',
+        destination: rootDir + './temp',
         filename: function editFileName(req, file, callback) {
           callback(null, file.originalname);
         },
       }),
+      fileFilter(req, file, callback) {
+        const extension = extname(file.originalname);
+        const acceptedFormats = ['.png', '.jpg', '.jpeg', '.mp3', '.mp4'];
+        if (extension !== '.csv') {
+          return callback(new Error(persianStringJoin(['فقط فای با فرمت ', 'csv', ' قابل اپلود هست'])), false);
+        }
+        callback(null, true);
+      },
     }),
   )
   async uploadAzanXlsx(
@@ -127,11 +151,12 @@ export class FileController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: './files/azan',
+        destination: rootDir + './files/azan',
         filename: function editFileName(req, file, callback) {
           callback(null, file.originalname);
         },
       }),
+      fileFilter,
     }),
   )
   async uploadAzanFile(@UploadedFile() file: Express.Multer.File, @ReqUser() initiator: UserJwtPayload) {
@@ -158,23 +183,6 @@ export class FileController {
     return this.fileService.adminDeleteFile(initiator, fileId);
   }
 
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Admin upload dashboard pic ' })
-  @ApiResponse({ status: 200 })
-  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
-  @Post('admin/dashboard/upload')
-  @UseInterceptors(
-    FileInterceptor('file', {
-      storage: diskStorage({
-        destination: './public',
-        filename: adminDashboardPic,
-      }),
-    }),
-  )
-  async adminUploadDashboardPic(@UploadedFile() file: Express.Multer.File) {
-    return { message: 'عکس داشبورد با موفقیت اپدیت شد' };
-  }
-
   @ApiOperation({ summary: 'return the type of azan file in the Content-Type header' })
   @Head('download/azan')
   getAzanType(@Response() res: express.Response): express.Response {
@@ -197,10 +205,28 @@ export class FileController {
     return this.fileService.fileBuffer(fileName);
   }
 
-  @ApiOperation({ summary: 'returns a stream of dashboard pic ' })
-  @Get('dashboard')
-  dashboard() {
-    return this.fileService.dashboard();
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Admin upload panel file' })
+  @ApiResponse({ status: 200 })
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN]))
+  @Post('admin/panel-file/upload/:fileName')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: rootDir + './public',
+        filename: adminPanelfileUpload,
+      }),
+      fileFilter,
+    }),
+  )
+  async adminUploadPanelFile(@Param() { fileName }: PanelFileNameParamDto, @UploadedFile() file: Express.Multer.File) {
+    return { message: 'عکس داشبورد با موفقیت اپدیت شد' };
+  }
+
+  @ApiOperation({ summary: 'returns a stream of panel file' })
+  @Get('panel-files/:fileName')
+  downloadPanelFile(@Param() { fileName }: PanelFileNameParamDto) {
+    return this.fileService.downloadPanelFile(fileName);
   }
 
   @Get('download/stream/:fileName')
@@ -265,9 +291,10 @@ export class FileController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: './files',
+        destination: rootDir + './files',
         filename: editFileNameForAdmin,
       }),
+      fileFilter,
     }),
   )
   async uploadByAdmin(
