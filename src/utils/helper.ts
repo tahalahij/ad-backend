@@ -12,6 +12,6 @@ export function persianStringJoin(arr: string[]): string {
   return arr.join();
 }
 export function likeRegx(value:string) {
- const  regex = new RegExp(["^", value, "$"].join(""), "gi");
+ const  regex = new RegExp(["^", value, "$"].join(""), "i");
   return regex
 }
