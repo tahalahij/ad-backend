@@ -1,8 +1,15 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import * as fs from 'fs';
 
 async function bootstrap() {
+  // check ../samand folder exists
+  const dir = '../samand';
+  if (!fs.existsSync(dir)) {
+    throw new Error(' پوشه  samand را کنار پوشه پروژه ایجاد کنید');
+  }
+
   const app = await NestFactory.create(AppModule);
   const config = new DocumentBuilder()
     .setTitle('سمند')

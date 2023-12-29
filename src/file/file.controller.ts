@@ -38,6 +38,7 @@ import { UserJwtPayload } from '../auth/user.jwt.type';
 import { persianStringJoin } from '../utils/helper';
 import { PanelFileNameParamDto } from './dtos/panel.file.name.param.dto';
 import os from 'os';
+import { UploadLimitGuard } from './guards/upload.limit.guard';
 
 function fileFilter(req, file, callback) {
   const extension = extname(file.originalname);
@@ -79,7 +80,7 @@ function adminPanelfileUpload(req, file, callback) {
   callback(null, newName);
 }
 
-const rootDir = os.platform() === 'linux' ? '/temp/samand' : process.cwd();
+const rootDir = '../samand';
 @ApiTags('files')
 @Controller('files')
 export class FileController {
@@ -89,12 +90,12 @@ export class FileController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Operator upload its file' })
   @ApiResponse({ status: 200 })
-  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.OPERATOR]))
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.OPERATOR]), UploadLimitGuard)
   @Post('upload')
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: rootDir + './files',
+        destination: rootDir + '/files',
         filename: editFileName,
       }),
       fileFilter,
@@ -118,7 +119,7 @@ export class FileController {
   @UseInterceptors(
     FilesInterceptor('file', 10, {
       storage: diskStorage({
-        destination: rootDir + './temp',
+        destination: rootDir + '/temp',
         filename: function editFileName(req, file, callback) {
           callback(null, file.originalname);
         },
@@ -151,7 +152,7 @@ export class FileController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: rootDir + './files/azan',
+        destination: rootDir + '/files/azan',
         filename: function editFileName(req, file, callback) {
           callback(null, file.originalname);
         },
@@ -213,14 +214,14 @@ export class FileController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: rootDir + './public',
+        destination: './public',
         filename: adminPanelfileUpload,
       }),
       fileFilter,
     }),
   )
   async adminUploadPanelFile(@Param() { fileName }: PanelFileNameParamDto, @UploadedFile() file: Express.Multer.File) {
-    return { message: 'عکس داشبورد با موفقیت اپدیت شد' };
+    return { message: 'فایل با موفقیت آپلود شد' };
   }
 
   @ApiOperation({ summary: 'returns a stream of panel file' })
@@ -291,7 +292,7 @@ export class FileController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: rootDir + './files',
+        destination: rootDir + '/files',
         filename: editFileNameForAdmin,
       }),
       fileFilter,

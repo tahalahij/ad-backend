@@ -36,7 +36,7 @@ import { PanelFilesNameEnum } from './enums/panel.files.name.enum';
 @Injectable()
 export class FileService {
   private logger = new Logger(FileService.name);
-  private rootDir = os.platform() === 'linux' ? '/temp/samand' : process.cwd();
+  private rootDir = '../samand';
   constructor(
     @InjectModel(File.name) private fileModel: Model<File>,
     @Inject(forwardRef(() => ConductorService)) private conductorService: ConductorService,
@@ -163,6 +163,9 @@ export class FileService {
   }
   async getFileById(id: string | mongoose.Types.ObjectId): Promise<FileDocument> {
     return this.fileModel.findById(id);
+  }
+  async countOperatorsFiles(ownerId: string): Promise<number> {
+    return this.fileModel.count({ ownerId });
   }
 
   async deleteFile(initiator: UserJwtPayload, fileId: string): Promise<{ message: string }> {
