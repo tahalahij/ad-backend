@@ -3,6 +3,7 @@ import {
   forwardRef,
   Inject,
   Injectable,
+  InternalServerErrorException,
   Logger,
   NotFoundException,
   StreamableFile,
@@ -230,9 +231,11 @@ export class FileService {
 
   downloadPanelFile(fileName: PanelFilesNameEnum): StreamableFile {
     const files = readdirSync(join(this.rootDir, `/public`));
-    let name = `${fileName}_default.png`;
+    let name = fileName.toLowerCase();
     if (files.length > 1) {
-      name = files.find((f) => f !== name);
+      name = files.find((f) => f.includes(name));
+    } else {
+      throw new InternalServerErrorException(` ${fileName}   فایل پنلی مورد نظر پیدا نشد: `);
     }
     const stream = createReadStream(join(this.rootDir, '/public', name));
     return new StreamableFile(stream);

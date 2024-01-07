@@ -1,5 +1,5 @@
 export enum PanelFilesNameEnum {
   'DASHBOARD' = 'dashboard',
   'LOGO' = 'logo',
-  'FIRST_PAGE' = 'first-page',
+  'FIRST_PAGE' = 'first_page',
 }

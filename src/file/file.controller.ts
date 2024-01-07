@@ -37,7 +37,6 @@ import { ReqUser } from '../auth/request.initiator.decorator';
 import { UserJwtPayload } from '../auth/user.jwt.type';
 import { persianStringJoin } from '../utils/helper';
 import { PanelFileNameParamDto } from './dtos/panel.file.name.param.dto';
-import os from 'os';
 import { UploadLimitGuard } from './guards/upload.limit.guard';
 
 function fileFilter(req, file, callback) {
@@ -75,7 +74,7 @@ function editFileNameForAdmin(req, file, callback) {
 
 function adminPanelfileUpload(req, file, callback) {
   const extension = extname(file.originalname);
-  const newName = `${req.params.fileName}${extension}`;
+  const newName = `${req.params.fileName.toLowerCase()}_default${extension}`;
 
   callback(null, newName);
 }
