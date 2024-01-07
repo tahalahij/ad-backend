@@ -20,7 +20,7 @@ import { CreateUserDto } from './dtos/create.user.dto';
 import { ConfigService } from '@nestjs/config';
 import paginate, { PaginationRes } from '../utils/pagination.util';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
-import { likeRegx, persianStringJoin } from '../utils/helper';
+import { containsPersianChar, likeRegx, persianStringJoin } from '../utils/helper';
 import { GetUsersQueryDto } from './dtos/get.users.query.dto';
 import { filter } from 'rxjs';
 
@@ -98,6 +98,9 @@ export class UserService {
     };
   }
   async createNewUser(initiator: UserJwtPayload, body: CreateUserDto): Promise<User> {
+    if (containsPersianChar(body.username)) {
+      throw new BadRequestException('نام کاربری نمیتواند حاوی حروف فارسی باشد');
+    }
     const user = await this.userModel.create({
       ...body,
       password: await this.CryptoService.hashPassword(body.password),
@@ -116,6 +119,9 @@ export class UserService {
   async updateUser(initiator: UserJwtPayload, id: string, updateObj: UpdateUserDto): Promise<User> {
     const user = await this.userModel.findById(id);
     if (updateObj.username) {
+      if (containsPersianChar(updateObj.username)) {
+        throw new BadRequestException('نام کاربری نمیتواند حاوی حروف فارسی باشد');
+      }
       const exists = await this.userModel.exists({ username: updateObj.username, _id: { $ne: id } });
       if (exists) {
         throw new BadRequestException('اپراتور با این نام کاربری وجود دارد');

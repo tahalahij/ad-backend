@@ -9,6 +9,12 @@ export function handleIPV6(ip: string) {
 export function persianStringJoin(arr: string[]): string {
   return arr.join();
 }
+
+export function containsPersianChar(str) {
+  const regExp = /^[\u0600-\u06FF\s]+$/;
+
+  return regExp.test(str);
+}
 export function likeRegx(value: string) {
   const regex = new RegExp(`/${value}/`, 'i');
   return regex;
