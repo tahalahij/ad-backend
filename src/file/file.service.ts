@@ -89,7 +89,15 @@ export class FileService {
       const workBook = XLSX.read(buf);
       const jsonData = XLSX.utils.sheet_to_json(workBook.Sheets[workBook.SheetNames[0]]);
       const timeAndDates = jsonData.map((d) => {
-        return { date: d['تاریخ میلادی'], noon: d['اذان ظهر'], vesper: d['اذان مغرب'], sunrise: d['اذان صبح'] };
+        return {
+          date: d['تاریخ میلادی'],
+          noon: d['اذان ظهر'],
+          vesper: d['اذان مغرب'],
+          sunrise: d['طلوع آفتاب'],
+          dawnPrayer: d['اذان صبح'],
+          sunset: d['غروب آفتاب'],
+          midnight: d['نیمه شب'],
+        };
       });
 
       range.start = timeAndDates[0].date; // for finding the first and last date
@@ -99,6 +107,9 @@ export class FileService {
         this.scheduleService.createAzanSchedule(i.date, i.sunrise, AzanTypeEnum.SUNRISE);
         this.scheduleService.createAzanSchedule(i.date, i.noon, AzanTypeEnum.NOON);
         this.scheduleService.createAzanSchedule(i.date, i.vesper, AzanTypeEnum.VESPER);
+        this.scheduleService.createAzanSchedule(i.date, i.midnight, AzanTypeEnum.MIDNIGHT);
+        this.scheduleService.createAzanSchedule(i.date, i.sunset, AzanTypeEnum.SUNSET);
+        this.scheduleService.createAzanSchedule(i.date, i.dawnPrayer, AzanTypeEnum.DAWN_PRAYER);
       });
     });
 

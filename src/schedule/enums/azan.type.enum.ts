@@ -2,4 +2,7 @@ export enum AzanTypeEnum {
   SUNRISE = 'SUNRISE',
   NOON = 'NOON',
   VESPER = 'VESPER',
+  DAWN_PRAYER = 'DAWN_PRAYER',
+  SUNSET = 'SUNSET',
+  MIDNIGHT = 'MIDNIGHT',
 }

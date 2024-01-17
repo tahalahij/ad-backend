@@ -260,17 +260,24 @@ export class ScheduleService {
     return exists.remove();
   }
 
-  async getAzanTimestamps(): Promise<{ azans: Azan[]; azanDurationInSec: number }> {
+  async getAzanTimestamps(): Promise<{ azans: Azan[]; azanDurationInSec: number; milisecToNextAzan: number }> {
     const date = moment().format('YYYY/MM/DD');
-    console.log({ date });
-    const azans = await this.azanModel.find({
-      date,
-      start: { $gte: new Date() },
-    });
-    const azanDurationInSec = await this.systemSettingService.getSystemSetting(SystemSettingsEnum.AZAN_DURATION);
+
+    const [azans, azanDurationInSec] = await Promise.all([
+      this.azanModel.find({
+        date,
+        start: { $gte: new Date() },
+      }),
+      this.systemSettingService.getSystemSetting(SystemSettingsEnum.AZAN_DURATION),
+    ]);
+
+    const diffs = azans
+      .filter((a) => [AzanTypeEnum.NOON, AzanTypeEnum.DAWN_PRAYER, AzanTypeEnum.VESPER].includes(a.type)) // azans only
+      .map((a: Azan) => moment().diff(moment(String(a.start))));
     return {
       azans,
       azanDurationInSec: Number(azanDurationInSec?.value || 120),
+      milisecToNextAzan: Math.min(...diffs),
     };
   }
   async adminDelete(initiator: UserJwtPayload, id: string): Promise<Schedule> {

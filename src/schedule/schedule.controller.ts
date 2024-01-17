@@ -26,7 +26,10 @@ export class ScheduleController {
   @ApiResponse({ status: 200 })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.OPERATOR]))
   @Post('')
-  async createSchedule(@ReqUser() initiator: UserJwtPayload, @Body() scheduleBody: ScheduleBodyDto): Promise<Schedule[]> {
+  async createSchedule(
+    @ReqUser() initiator: UserJwtPayload,
+    @Body() scheduleBody: ScheduleBodyDto,
+  ): Promise<Schedule[]> {
     const schedule = await this.scheduleService.createSchedule(initiator, initiator.id, scheduleBody);
     return schedule;
   }
@@ -82,10 +85,10 @@ export class ScheduleController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'App gets todays azan timestamps, and duration' })
+  @ApiOperation({ summary: 'App gets todays azan timestamps, and duration, and milisecToNextAzan' })
   @ApiResponse({ status: 200 })
   @Get('azan-time')
-  async getAzanTime(): Promise<{ azans: Azan[]; azanDurationInSec: number }> {
+  async getAzanTime(): Promise<{ azans: Azan[]; azanDurationInSec: number; milisecToNextAzan: number }> {
     return this.scheduleService.getAzanTimestamps();
   }
 
