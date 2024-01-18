@@ -22,6 +22,15 @@ export class UserController {
   constructor(private userService: UserService) {}
 
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'All users can get their info' })
+  @ApiResponse({ status: 200 })
+  @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN, RolesType.CONTROLLER, RolesType.OPERATOR]))
+  @Get('/whoami')
+  async whoAmI(@ReqUser() initiator: UserJwtPayload): Promise<UserJwtPayload> {
+    return initiator;
+  }
+
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin or controller gets all users' })
   @ApiResponse({ status: 200, type: User })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN, RolesType.CONTROLLER]))
