@@ -125,7 +125,6 @@ export class FileController {
       }),
       fileFilter(req, file, callback) {
         const extension = extname(file.originalname);
-        const acceptedFormats = ['.png', '.jpg', '.jpeg', '.mp3', '.mp4'];
         if (extension !== '.xlsx') {
           return callback(new Error(persianStringJoin(['فقط فای با فرمت ', 'xlsx', ' قابل اپلود هست'])), false);
         }
