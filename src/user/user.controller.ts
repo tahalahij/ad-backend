@@ -26,8 +26,8 @@ export class UserController {
   @ApiResponse({ status: 200 })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN, RolesType.CONTROLLER, RolesType.OPERATOR]))
   @Get('/whoami')
-  async whoAmI(@ReqUser() initiator: UserJwtPayload): Promise<UserJwtPayload> {
-    return initiator;
+  async whoAmI(@ReqUser() initiator: UserJwtPayload): Promise<User> {
+    return this.userService.getOperator(initiator.id);
   }
 
   @ApiBearerAuth()
