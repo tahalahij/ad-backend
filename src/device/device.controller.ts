@@ -90,7 +90,9 @@ export class DeviceController {
   @ApiResponse({ status: 200 })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN, RolesType.CONTROLLER]))
   @Get('/admin/schedule/:deviceId')
-  async adminGetSchedule(@Param('deviceId') deviceId: string): Promise<{ schedule: Schedule; file: File }> {
+  async adminGetSchedule(
+    @Param('deviceId') deviceId: string,
+  ): Promise<{ schedule: Schedule; file: File; device: Device }> {
     return this.deviceService.getDevicesCurrentSchedule(deviceId);
   }
   @ApiBearerAuth()
