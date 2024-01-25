@@ -102,9 +102,12 @@ export class DeviceService {
     return { enabled: device.enabled };
   }
 
-  async getDevicesCurrentSchedule(deviceId: string): Promise<{ schedule: Schedule; file: File }> {
+  async getDevicesCurrentSchedule(deviceId: string): Promise<{ schedule: Schedule; file: File; device: Device }> {
     const device = await this.getDevice({ _id: deviceId });
-    return this.scheduleService.getSchedule(device.ip);
+    return {
+      device,
+      ...(await this.scheduleService.getSchedule(device.ip)),
+    };
   }
   async checkDeviceIpMatchesOperator(ip: string, operatorId: string): Promise<boolean> {
     const exists = await this.deviceModel.exists({ ip, operatorId, enabled: true });
