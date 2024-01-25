@@ -126,8 +126,8 @@ export class FileController {
       fileFilter(req, file, callback) {
         const extension = extname(file.originalname);
         const acceptedFormats = ['.png', '.jpg', '.jpeg', '.mp3', '.mp4'];
-        if (extension !== '.csv') {
-          return callback(new Error(persianStringJoin(['فقط فای با فرمت ', 'csv', ' قابل اپلود هست'])), false);
+        if (extension !== '.xlsx') {
+          return callback(new Error(persianStringJoin(['فقط فای با فرمت ', 'xlsx', ' قابل اپلود هست'])), false);
         }
         callback(null, true);
       },
