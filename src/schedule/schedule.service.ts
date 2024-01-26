@@ -266,14 +266,13 @@ export class ScheduleService {
     const [azans, azanDurationInSec] = await Promise.all([
       this.azanModel.find({
         date,
-        start: { $gte: new Date() },
       }),
       this.systemSettingService.getSystemSetting(SystemSettingsEnum.AZAN_DURATION),
     ]);
 
     const diffs = azans
       .filter((a) => [AzanTypeEnum.NOON, AzanTypeEnum.DAWN_PRAYER, AzanTypeEnum.VESPER].includes(a.type)) // azans only
-      .map((a: Azan) => moment().diff(moment(String(a.start))))
+      .map((a: Azan) => moment(String(a.start)).diff(moment()))
       .filter((diff) => diff > 0); // azans only
     return {
       azans,
