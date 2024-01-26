@@ -273,7 +273,8 @@ export class ScheduleService {
 
     const diffs = azans
       .filter((a) => [AzanTypeEnum.NOON, AzanTypeEnum.DAWN_PRAYER, AzanTypeEnum.VESPER].includes(a.type)) // azans only
-      .map((a: Azan) => moment().diff(moment(String(a.start))));
+      .map((a: Azan) => moment().diff(moment(String(a.start))))
+      .filter((diff) => diff > 0); // azans only
     return {
       azans,
       azanDurationInSec: Number(azanDurationInSec?.value || 120),
