@@ -22,7 +22,6 @@ import paginate, { PaginationRes } from '../utils/pagination.util';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { containsPersianChar, likeRegx, persianStringJoin } from '../utils/helper';
 import { GetUsersQueryDto } from './dtos/get.users.query.dto';
-import { filter } from 'rxjs';
 
 @Injectable()
 export class UserService {
@@ -125,6 +124,11 @@ export class UserService {
       const exists = await this.userModel.exists({ username: updateObj.username, _id: { $ne: id } });
       if (exists) {
         throw new BadRequestException('اپراتور با این نام کاربری وجود دارد');
+      }
+    }
+    if (updateObj.enabled != undefined && updateObj.enabled == false) {
+      if (initiator.role === RolesType.ADMIN) {
+        throw new BadRequestException('غیر فعال کردن ادمین ممکن نیست');
       }
     }
     this.auditLogsService.log({
