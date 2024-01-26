@@ -50,7 +50,10 @@ export class StatisticsService {
     if (end) {
       filter.created_at['$lte'] = end;
     }
-    const { total, data: statistics } = await paginate(this.statisticsModel, filter, options);
+    const { total, data: statistics } = await paginate(this.statisticsModel, filter, {
+      ...options,
+      populates: ['fileId'],
+    });
 
     const details = new Map();
     statistics.map((s) => {
