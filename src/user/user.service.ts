@@ -96,6 +96,13 @@ export class UserService {
       name: user.name,
     };
   }
+  async checkIsEnabled(id: string): Promise<void> {
+    const user = await this.userModel.findById(id).select('enabled').lean();
+    if (!user) {
+      throw new UnauthorizedException('دسترسی شما محدود شده است. با ادمین اصلی تماس بگیرید');
+    }
+  }
+
   async createNewUser(initiator: UserJwtPayload, body: CreateUserDto): Promise<User> {
     if (containsPersianChar(body.username)) {
       throw new BadRequestException('نام کاربری نمیتواند حاوی حروف فارسی باشد');
