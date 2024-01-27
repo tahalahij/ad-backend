@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsOptional, IsEnum } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsEnum, IsBoolean } from 'class-validator';
 import { RolesType } from '../../auth/role.type';
+import { Transform } from 'class-transformer';
 
 export class CreateUserDto {
   @ApiProperty({ example: 'jackdorsi' })
@@ -32,4 +33,11 @@ export class CreateUserDto {
   @IsString()
   @IsOptional()
   mac?: string;
+
+  @Transform(({ value }) => {
+    // eslint-disable-next-line max-len
+    return value === 'true' || value === true; // the filed is coming from query so is string, the second check is this function is being called twice so the second time it's boolean
+  })
+  @IsBoolean()
+  enabled: boolean;
 }
