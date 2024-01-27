@@ -12,7 +12,8 @@ import { ConductorController } from './conductor.controller';
 import { Azan, AzanSchema } from './azan.schema';
 import { SystemSettingModule } from '../system-settings/system-setting.module';
 import { Device, DeviceSchema } from '../device/device.schema';
-import { AuditLogsModule } from "../audit-logs/audit-logs.module";
+import { AuditLogsModule } from '../audit-logs/audit-logs.module';
+import { SocketModule } from '../socket/socket.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { AuditLogsModule } from "../audit-logs/audit-logs.module";
     forwardRef(() => StatisticsModule),
     forwardRef(() => SystemSettingModule),
     forwardRef(() => AuditLogsModule),
+    forwardRef(() => SocketModule),
     MongooseModule.forFeature([
       { name: Conductor.name, schema: ConductorSchema },
       { name: Schedule.name, schema: ScheduleSchema },

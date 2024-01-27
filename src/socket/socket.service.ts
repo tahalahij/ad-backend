@@ -4,6 +4,7 @@ import { EventsEnum, RoomsEnum } from './enums/events.enum';
 import { handleIPV6 } from '../utils/helper';
 import { DeviceService } from '../device/device.service';
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
+import { Schedule } from '../schedule/schedule.schema';
 
 @Injectable()
 export class SocketService {
@@ -59,5 +60,9 @@ export class SocketService {
         this.io.to(RoomsEnum.ALL).emit(EventsEnum.DEVICE_DISCONNECTED, { deviceId: device._id });
       }
     });
+  }
+
+  async broadcastScheduleCreated(schedule: Schedule) {
+    this.io.emit(EventsEnum.SCHEDULE_CREATED, schedule);
   }
 }

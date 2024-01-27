@@ -21,6 +21,7 @@ import paginate, { PaginationRes } from '../utils/pagination.util';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { UserJwtPayload } from '../auth/user.jwt.type';
 import { Device } from '../device/device.schema';
+import { SocketService } from '../socket/socket.service';
 
 @Injectable()
 export class ScheduleService {
@@ -30,6 +31,7 @@ export class ScheduleService {
     @InjectModel(Azan.name) private azanModel: Model<Azan>,
     @InjectModel(Conductor.name) private conductorModel: Model<Conductor>,
     @Inject(forwardRef(() => FileService)) private fileService: FileService,
+    @Inject(forwardRef(() => SocketService)) private socketService: SocketService,
     @Inject(forwardRef(() => DeviceService)) private deviceService: DeviceService,
     @Inject(forwardRef(() => StatisticsService)) private statisticsService: StatisticsService,
     @Inject(forwardRef(() => SystemSettingService)) private systemSettingService: SystemSettingService,
@@ -206,6 +208,8 @@ export class ScheduleService {
           conductor,
           ...rest,
         });
+        this.logger.log('schedule created', { schedule });
+        this.socketService.broadcastScheduleCreated(schedule);
         this.auditLogsService.log({
           role: initiator.role,
           initiatorId: initiator.id,
