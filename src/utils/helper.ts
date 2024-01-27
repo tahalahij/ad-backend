@@ -16,6 +16,5 @@ export function containsPersianChar(str) {
   return regExp.test(str);
 }
 export function likeRegx(value: string) {
-  const regex = new RegExp(`/${value}/`, 'i');
-  return { $regex: /value/, $options: 'i' };
+  return { $regex: new RegExp(value, 'i') };
 }
