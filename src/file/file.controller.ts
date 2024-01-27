@@ -38,6 +38,7 @@ import { UserJwtPayload } from '../auth/user.jwt.type';
 import { persianStringJoin } from '../utils/helper';
 import { PanelFileNameParamDto } from './dtos/panel.file.name.param.dto';
 import { UploadLimitGuard } from './guards/upload.limit.guard';
+import process from 'process';
 
 function fileFilter(req, file, callback) {
   const extension = extname(file.originalname);
@@ -79,7 +80,7 @@ function adminPanelfileUpload(req, file, callback) {
   callback(null, newName);
 }
 
-const rootDir = '../samand';
+const rootDir = 'files';
 @ApiTags('files')
 @Controller('files')
 export class FileController {

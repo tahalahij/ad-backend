@@ -31,13 +31,12 @@ import paginate, { PaginationRes } from '../utils/pagination.util';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { UserJwtPayload } from '../auth/user.jwt.type';
 import { persianStringJoin } from '../utils/helper';
-import * as os from 'os';
 import { PanelFilesNameEnum } from './enums/panel.files.name.enum';
 
 @Injectable()
 export class FileService {
   private logger = new Logger(FileService.name);
-  private rootDir = '../samand';
+  private rootDir = 'files';
   constructor(
     @InjectModel(File.name) private fileModel: Model<File>,
     @Inject(forwardRef(() => ConductorService)) private conductorService: ConductorService,

@@ -2,11 +2,12 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as fs from 'fs';
+import * as process from 'process';
 
 async function bootstrap() {
   // check ../samand folder exists
-  const dir = '../samand';
-  if (!fs.existsSync(dir)) {
+  const rootDir = 'files';
+  if (!fs.existsSync(rootDir)) {
     throw new Error(' پوشه  samand را کنار پوشه پروژه ایجاد کنید');
   }
 
