@@ -36,7 +36,7 @@ import { PanelFilesNameEnum } from './enums/panel.files.name.enum';
 @Injectable()
 export class FileService {
   private logger = new Logger(FileService.name);
-  private rootDir = 'files';
+  private rootDir = process.cwd();
   constructor(
     @InjectModel(File.name) private fileModel: Model<File>,
     @Inject(forwardRef(() => ConductorService)) private conductorService: ConductorService,
@@ -242,8 +242,14 @@ export class FileService {
   downloadPanelFile(fileName: PanelFilesNameEnum): StreamableFile {
     const files = readdirSync(join(this.rootDir, `/public`));
     let name = fileName.toLowerCase();
+    console.log({
+      firstname: name,
+    });
     if (files.length > 1) {
       name = files.find((f) => f.includes(name));
+      console.log({
+        firstname: name,
+      });
     } else {
       throw new InternalServerErrorException(` ${fileName}   فایل پنلی مورد نظر پیدا نشد: `);
     }
