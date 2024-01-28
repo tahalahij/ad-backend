@@ -34,6 +34,17 @@ export class DeviceController {
   }
 
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'App gets its info and id' })
+  @ApiResponse({ status: 200 })
+  @Get('/app/whoami')
+  async appWhoAmI(
+    @Res({ passthrough: true }) res: Response,
+    @RealIP() deviceIp: string,
+  ): Promise<{ enabled: boolean }> {
+    return this.deviceService.getDevice({ ip: deviceIp });
+  }
+
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin or controller gets all devices' })
   @ApiResponse({ status: 200, type: Device })
   @UseGuards(JwtAuthGuard, RoleAccessCheck([RolesType.ADMIN, RolesType.CONTROLLER]))
