@@ -32,6 +32,8 @@ import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { UserJwtPayload } from '../auth/user.jwt.type';
 import { persianStringJoin } from '../utils/helper';
 import { PanelFilesNameEnum } from './enums/panel.files.name.enum';
+import * as path from 'path';
+import * as process from 'process';
 
 @Injectable()
 export class FileService {
@@ -47,6 +49,31 @@ export class FileService {
     this.logger.log(' محل ذخیره سازی فایلها:', this.rootDir);
   }
 
+  async getFileDuration(file: Express.Multer.File, dir: string): Promise<number> {
+    let duration = 70;
+    if (file.mimetype.split('/')[0] === 'audio') {
+      duration = await getAudioDurationInSeconds(path.join(dir, file.filename));
+    } else if (file.mimetype.split('/')[0] === 'video') {
+      const fsp = fs.promises;
+
+      const buff = NodeBuffer.Buffer.alloc(100);
+      const header = NodeBuffer.Buffer.from('mvhd');
+      const f = await fsp.open(path.join(dir, file.filename), 'r');
+      const { buffer } = await f.read(buff, 0, 100, 0);
+
+      await f.close();
+
+      const start = buffer.indexOf(header) + 17;
+      const timeScale = buffer.readUInt32BE(start);
+      const vidDuration = buffer.readUInt32BE(start + 4);
+
+      duration = Math.floor((vidDuration / timeScale) * 1000) / 1000;
+    } else {
+      throw new BadRequestException(' فرمت فایل ارسالی پذیرفته نمیشود: تنها فایلهای mp3, mp4');
+    }
+    return duration;
+  }
+
   async createFile(
     initiator: UserJwtPayload,
     ownerId: string,
@@ -57,14 +84,18 @@ export class FileService {
     if (10 ** 6 * Number(sizeLimit.value) < file.size) {
       throw new BadRequestException(`فایل نمیتواند از  ${sizeLimit.value} مگابایت بزرگتر باشد`);
     }
+    const type = (lookup(file.filename) || 'image/').split('/')[0];
+    const delay =
+      type === 'image' ? uploadDto?.delay : await this.getFileDuration(file, path.join(this.rootDir, 'files'));
+
     const fileDoc = await this.fileModel.create({
       ownerId,
       path: file.path,
       name: file.filename,
       originalName: file.filename.split('-')[1] || file.filename,
       animationName: uploadDto?.animationName,
-      delay: uploadDto?.delay,
-      type: (lookup(file.filename) || 'image/').split('/')[0],
+      delay,
+      type,
       createdAt: new Date(),
     });
     this.auditLogsService.log({
@@ -122,7 +153,6 @@ export class FileService {
       description: persianStringJoin(['   اپلود فایل زمان اذان ', range.start, ' تا ', range.end]),
     });
   }
-
   async uploadAzanFile(initiator: UserJwtPayload, file: Express.Multer.File): Promise<void> {
     const dir = this.rootDir + '/files/azan/'; // files are stored in temp directory
     for (const fileName of fs.readdirSync(dir)) {
@@ -131,27 +161,7 @@ export class FileService {
         await fs.unlinkSync(dir + fileName);
       }
     }
-    let duration = 70;
-    if (file.mimetype.split('/')[0] === 'audio') {
-      duration = await getAudioDurationInSeconds(dir + file.filename);
-    } else if (file.mimetype.split('/')[0] === 'video') {
-      const fsp = fs.promises;
-
-      const buff = NodeBuffer.Buffer.alloc(100);
-      const header = NodeBuffer.Buffer.from('mvhd');
-      const f = await fsp.open(dir + file.filename, 'r');
-      const { buffer } = await f.read(buff, 0, 100, 0);
-
-      await f.close();
-
-      const start = buffer.indexOf(header) + 17;
-      const timeScale = buffer.readUInt32BE(start);
-      const vidDuration = buffer.readUInt32BE(start + 4);
-
-      duration = Math.floor((vidDuration / timeScale) * 1000) / 1000;
-    } else {
-      throw new BadRequestException(' فرمت فایل ارسالی پذیرفته نمیشود: تنها فایلهای mp3, mp4');
-    }
+    const duration = await this.getFileDuration(file, dir);
     this.auditLogsService.log({
       role: initiator.role,
       initiatorId: initiator.id,
