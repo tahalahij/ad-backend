@@ -1,6 +1,7 @@
 import { FilterQuery, Model } from 'mongoose';
 import { PaginationQueryDto } from '../schedule/dtos/pagination.dto';
 import { OrderEnum } from '../schedule/enums/order.enum';
+import { isDefined } from 'class-validator';
 
 export interface PaginationOptions extends PaginationQueryDto {
   populates?: string[];
@@ -15,16 +16,12 @@ export default async function paginate(
   where: FilterQuery<any>,
   { populates, page, limit, _sort, _order }: PaginationOptions,
 ): Promise<PaginationRes> {
-  if (!page) {
-    page = 0;
+  let query = model.find(where);
+
+  if (isDefined(page) && isDefined(limit)) {
+    query = query.skip(limit * page).limit(limit);
   }
-  if (!limit) {
-    limit = 10;
-  }
-  let query = model
-    .find(where)
-    .skip(limit * page)
-    .limit(limit);
+
   if (populates && populates?.length) {
     populates.map((p) => {
       query = query.populate(p);
