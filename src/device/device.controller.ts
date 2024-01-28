@@ -16,6 +16,7 @@ import { RealIP } from 'nestjs-real-ip';
 import { PaginationRes } from '../utils/pagination.util';
 import { ReqUser } from '../auth/request.initiator.decorator';
 import { UserJwtPayload } from '../auth/user.jwt.type';
+import { handleIPV6 } from '../utils/helper';
 
 @ApiTags('devices')
 @Controller('devices')
@@ -41,7 +42,7 @@ export class DeviceController {
     @Res({ passthrough: true }) res: Response,
     @RealIP() deviceIp: string,
   ): Promise<{ enabled: boolean }> {
-    return this.deviceService.getDevice({ ip: deviceIp });
+    return this.deviceService.getDevice({ ip: handleIPV6(deviceIp) });
   }
 
   @ApiBearerAuth()
